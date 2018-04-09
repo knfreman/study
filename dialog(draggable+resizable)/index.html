@@ -1,0 +1,757 @@
+﻿<html>
+<head>
+
+
+<script src="resources/jquery.min.js"></script>
+<script src="http://www.jq22.com/jquery/jquery-ui-1.11.0.js"></script>
+<link rel="stylesheet" type="text/css" href="http://www.jq22.com/jquery/jquery-ui-1.11.0.css">
+
+<script>
+$(document).ready(function(){
+	const minWidth=340;
+	const minHeight=700;
+
+	$("#dialog-close").click(function(){
+		$("#dialog-container").css("visibility","hidden");
+		$("#bottom-icon").css("display","block");
+	});
+
+	$("#bottom-icon").click(function(){
+		$("#dialog-container").css("visibility","visible");
+		$("#bottom-icon").css("display","none");
+	});
+
+	// 拖动
+	$("#dialog-head").mousedown(function(event){
+		var dialogContainerObj=document.getElementById("dialog-container");
+		var disX=event.clientX-dialogContainerObj.offsetLeft;
+		var disY=event.clientY-dialogContainerObj.offsetTop;
+
+		$(document).mousemove(function(event){
+			var newTop=event.clientY - disY;
+			var newLeft=event.clientX - disX;
+
+      			var maxTop = document.documentElement.clientHeight - dialogContainerObj.offsetHeight-3;
+			var maxLeft = document.documentElement.clientWidth - dialogContainerObj.offsetWidth;
+
+			if(newTop<0){
+				newTop=0;
+			}
+
+			if(newTop>maxTop){
+				newTop=maxTop;
+			}
+
+			if(newLeft<0){
+				newLeft=0;
+			}
+
+			if(newLeft>maxLeft){
+				newLeft=maxLeft;
+			}
+
+			$("#dialog-container").css("top",newTop).css("left",newLeft).css("bottom",0).css("right",0);
+
+			// 防止鼠标移动过程中选中元素
+			event.preventDefault();
+		});
+		
+		$(document).mouseup(function(){		
+			$(document).unbind("mousemove");
+			// 没有这句会trigger多次mouseup事件
+			$(document).unbind("mouseup");
+		});
+	});
+
+	/*================================ 调整大小 ================================*/
+
+	$("#dialog-top").mousedown(function(event){
+		var originalY=event.clientY;
+		var originalTop=parseFloat($("#dialog-container").css("top"));
+		var originalHeight=parseFloat($("#dialog-container").css("height"));
+
+		$(document).mousemove(function(event){
+			var currentY=event.clientY;
+			if(currentY<3){
+				// 防止上拉超出可视范围
+				currentY=3;
+			}
+
+			var deltaY=currentY-originalY;
+			var newHeight=originalHeight-deltaY;
+
+			if(newHeight<minHeight){
+				// 防止下拉缩小过多
+				newHeight=minHeight;
+				deltaY=originalHeight-newHeight;
+			}
+			
+			var newTop=originalTop+deltaY;
+			$("#dialog-container").css("top",newTop).css("height",newHeight);
+			
+			yAlign("dialog-head-bottom","dialog-head-title");
+			yAlign("dialog-head","dialog-logo");
+			yAlign("dialog-input","dialog-input-textarea");
+			yAlign("dialog-input","dialog-input-btn");
+
+			event.preventDefault();
+		});
+
+		$(document).mouseup(function(){		
+			$(document).unbind("mousemove");
+			$(document).unbind("mouseup");
+		});
+
+		event.preventDefault();
+	});
+
+	$("#dialog-bottom").mousedown(function(event){
+		var top=parseFloat($("#dialog-container").css("top"));
+		var left=parseFloat($("#dialog-container").css("left"));
+
+		var originalY=event.clientY;
+		var originalHeight=parseFloat($("#dialog-container").css("height"));
+
+		var maxY=document.documentElement.clientHeight-6;
+
+		$(document).mousemove(function(event){
+			var currentY=event.clientY;
+
+			if(currentY>maxY){
+				// 防止下拉超出可视范围
+				currentY=maxY;
+			}
+
+			var newHeight=originalHeight+currentY-originalY;
+
+			if(newHeight<minHeight){
+				// 防止上拉缩小过多
+				newHeight=minHeight;
+			}
+			
+			$("#dialog-container").css("left",left).css("top",top).css("height",newHeight);
+
+			yAlign("dialog-head-bottom","dialog-head-title");
+			yAlign("dialog-head","dialog-logo");
+			yAlign("dialog-input","dialog-input-textarea");
+			yAlign("dialog-input","dialog-input-btn");
+
+			event.preventDefault();
+		});
+
+		$(document).mouseup(function(){		
+			$(document).unbind("mousemove");
+			$(document).unbind("mouseup");
+		});
+
+		event.preventDefault();
+	});
+
+	$("#dialog-left").mousedown(function(){
+		var originalX=event.clientX;
+		var originalLeft=parseFloat($("#dialog-container").css("left"));
+		var originalWidth=parseFloat($("#dialog-container").css("width"));
+
+		$(document).mousemove(function(event){
+			var currentX=event.clientX;
+
+			if(currentX<0){
+				// 防止左拉超出可视范围
+				currentX=0;
+			}
+			
+			var deltaX=currentX-originalX;
+			var newWidth=originalWidth-deltaX;
+
+			if(newWidth<minWidth){
+				// 防止右拉缩小过多
+				newWidth=minWidth;
+				deltaX=originalWidth-newWidth;
+			}
+
+			var newLeft=originalLeft+deltaX;
+			$("#dialog-container").css("left",newLeft).css("width",newWidth);
+
+			xAlign("dialog-head-bottom","dialog-head-title");
+			xAlign("dialog-head","dialog-logo");
+
+			event.preventDefault();
+		});
+
+		$(document).mouseup(function(){		
+			$(document).unbind("mousemove");
+			$(document).unbind("mouseup");
+		});
+
+		event.preventDefault();
+	});
+
+	$("#dialog-right").mousedown(function(){
+		var originalX=event.clientX;
+		var originalWidth=parseFloat($("#dialog-container").css("width"));
+
+		var top=$("#dialog-container").css("top");
+		var left=$("#dialog-container").css("left");
+
+		var maxX=document.documentElement.clientWidth-5;
+
+		$(document).mousemove(function(event){
+			var currentX=event.clientX;
+
+			if(currentX>maxX){
+				// 防止右拉超出可视范围
+				currentX=maxX;
+			}
+
+			var newWidth=originalWidth+currentX-originalX;
+
+			if(newWidth<minWidth){
+				// 防止左拉缩小过多
+				newWidth=minWidth;
+			}
+
+			$("#dialog-container").css("top",top).css("left",left).css("width",newWidth);
+
+			xAlign("dialog-head-bottom","dialog-head-title");
+			xAlign("dialog-head","dialog-logo");
+
+			event.preventDefault();
+		});
+
+		$(document).mouseup(function(){		
+			$(document).unbind("mousemove");
+			$(document).unbind("mouseup");
+		});
+
+		event.preventDefault();
+	});
+
+	$("#dialog-input-btn").click(sendContent);
+
+	$("#dialog-input-textarea").keyup(function(e){
+		var eCode = e.keyCode ? e.keyCode : e.which ? e.which : e.charCode;
+        	if (eCode == 13){
+			sendContent();
+      		}
+	});
+
+	appendServerContent({
+		list:[{
+			type:"string",
+			value:"您好，欢迎使用chatbot!"
+		}]
+	});
+	
+	xAlign("dialog-head-bottom","dialog-head-title");
+	yAlign("dialog-head-bottom","dialog-head-title");
+
+	xAlign("dialog-head","dialog-logo");
+	yAlign("dialog-head","dialog-logo");
+
+	yAlign("dialog-input","dialog-input-textarea");
+	yAlign("dialog-input","dialog-input-btn");
+});
+
+function appendServerContent(response){
+	var accordionIds=new Array();
+	var options;
+	var replyContent=$("<div class='dialog-history-content-server'></div>");
+
+	response.list.forEach(function(e,index){
+		if(e.type=="string"){
+			replyContent.append($("<div class='dialog-history-content-server-string'></div>").text(e.value));
+		}else if(e.type=="text"){
+			// TODO:以后可能会有多段
+			let paragraphNode=$("<p></p>").text(e.value);
+			let contentContainer=$("<div></div>").append(paragraphNode);
+			let titleNode=$("<h3></h3>").text(e.title);
+			let accordionId="accordion_"+(new Date()).getTime()+"_"+index;
+			accordionIds.push(accordionId);
+
+			replyContent.append($("<div class='dialog-history-content-server-text'></div>").append($("<div id="+accordionId+" class='accordion'></div>").append(titleNode).append(contentContainer)));
+			replyContent.css("width","50%");
+		}else if(e.type=="option"){
+			options=e.value;
+		}
+	});
+
+	$("#dialog-history").append($("<div class='dialog-history-content'></div>").append(replyContent).append($("<div class='dialog-history-content-server-empty'></div>")));
+
+	if(accordionIds.length){
+		accordionIds.forEach(function(e){
+			$(function() {
+				$("#"+e).accordion({
+					collapsible: true,
+					active :false,
+					beforeActivate: function(event, ui) {
+						$("#"+e+" div.ui-accordion-content").attr("style","height:auto");
+					}
+				});
+			});
+		});
+	}
+
+	if(options&&options.length){
+		appendOptions(options);
+	}
+
+	$("#dialog-history").scrollTop(document.getElementById("dialog-history").scrollHeight);
+}
+
+function appendOptions(options){
+	var optionsNode=$("<div class='dialog-history-content-server-options'></div>");
+	options.forEach(function(e){
+		optionsNode.append($("<div class='dialog-history-content-server-option'></div>").text(e).click(function(){
+			$("#dialog-input-textarea").val(this.innerText);
+			sendContent();
+
+			var collections=this.parentNode.childNodes;
+
+			for(let i=0;i<collections.length;i++){
+				$(collections.item(i)).unbind("click").css("cursor","auto");
+			}
+		}));
+	});
+
+	$("#dialog-history").append($("<div class='dialog-history-content'></div>").append(optionsNode));
+}
+
+function sendContent(){
+	var inputVal = $("#dialog-input-textarea").val();
+	$("#dialog-input-textarea").val("");
+
+	if(inputVal){
+		inputVal=inputVal.trim()
+	};
+
+	if(inputVal){
+		var sentContent=$("<div class='dialog-history-content-user'></div>").text(inputVal);
+		var emptyDiv=$("<div class='dialog-history-content-user-empty'></div>");
+		var sentContentContainer=$("<div class='dialog-history-content'></div>");
+
+		sentContentContainer.append(sentContent);
+		sentContentContainer.append(emptyDiv);
+
+		$("#dialog-history").append(sentContentContainer).scrollTop(document.getElementById("dialog-history").scrollHeight);
+
+		// hard code的自动回复
+		if(inputVal=="折叠"||inputVal=="摺疊"){
+			appendServerContent({
+				list:[{
+					type:"string",
+					value:"有關信用卡繳費："
+				},{
+					type:"text",
+					title:"繳交首期保費注意事項",
+					value:"暫無。"
+				},{
+					type:"text",
+					title:"繳交續保保費注意事項",
+					value:"暫無。"
+				},{
+					type:"text",
+					title:"手續費",
+					value:"非中國建設銀行（亞洲）的本地VISA及MASTER信用卡，須收取手續費，新保單及續保保單爲1.5%。"
+				}]
+			});
+		}else if(inputVal=="按钮"||inputVal=="按鈕"){
+			appendServerContent({
+				list:[{
+					type:"string",
+					value:"請選擇以下繳費方式："
+				},{
+					type:"option",
+					value:['支票付款','現金付款','信用卡','銀行本票']
+				}]
+			});
+		}else{
+			appendServerContent({
+			list:[{
+				type:"string",
+				value:"很抱歉，目前还处于开发阶段，不能提供服务！"
+				}]
+			});
+		}
+	}
+}
+
+function adjustWidth(container,target){
+	if(parseFloat(target.css("width"))>parseFloat(container.css("width"))*0.6){
+		target.css("width","50%");
+	}
+}
+
+function xAlign(containerId,targetId){
+	var container=document.getElementById(containerId);
+	var containerWidth=container.offsetWidth;
+
+	var target=document.getElementById(targetId);
+	var targetWidth=target.offsetWidth;
+
+	var left=(containerWidth-targetWidth)/2;
+	$("#"+targetId).css("left",left);
+}
+
+function yAlign(containerId,targetId){
+	var container=document.getElementById(containerId);
+	var containerHeight=container.offsetHeight;
+
+	var target=document.getElementById(targetId);
+	var targetHeight=target.offsetHeight;
+
+	var top=(containerHeight-targetHeight)/2;
+	$("#"+targetId).css("top",top);
+}
+
+</script>
+
+
+<style type="text/css">
+
+#bottom-icon
+{
+	position:absolute;
+	right:0;
+	bottom:0;
+	cursor:pointer;
+	display:block;
+}
+
+#dialog-container
+{
+	visibility:hidden;
+
+	position:absolute;
+	right:50px;
+	bottom:20px;
+
+	width:340px;
+	height:700px;
+
+	border-style:solid;
+	border-width:1px;
+	border-color: A9A9A9;
+
+	box-shadow: 10px 10px 5px #888888;
+}
+
+#dialog-top
+{
+	position:absolute;
+	top:0;
+	left:0;
+
+	width:100%;
+	height:5px;
+
+	cursor:n-resize;	
+}
+
+#dialog-right
+{
+	position:absolute;
+	top:0;
+	right:0;
+
+	width:5px;
+	height:100%;
+
+	cursor:e-resize;	
+}
+
+#dialog-bottom
+{
+	position:absolute;
+	left:0;
+	bottom:0;
+
+	width:100%;
+	height:5px;
+
+	cursor:s-resize;	
+}
+
+#dialog-left
+{
+	position:absolute;
+	top:0;
+	left:0;
+
+	width:5px;
+	height:100%;
+
+	cursor:w-resize;
+}
+
+#dialog-head
+{
+	height: 28%;
+
+	border-bottom-style: solid;
+	border-bottom-left-radius: 50px;
+	border-bottom-right-radius: 50px;
+	border-color: A9A9A9;
+	border-width: 2px;
+
+	cursor: move;
+
+	position: relative;
+}
+
+#dialog-head-top
+{
+	width: 100%;
+	height: 60%;
+	background-color: D31145;
+}
+
+#dialog-head-bottom
+{
+	width: 100%;
+	height: 40%;
+
+	position: relative;
+}
+
+#dialog-head-title
+{
+	position:absolute;
+}
+
+#dialog-close
+{
+	cursor:pointer;
+
+	width: 21px;
+	height: 19px;
+
+	position: absolute;
+	left: 5px;
+	top: 5px;
+
+	background: url(resources/close-icon.png) no-repeat;
+
+	cursor: pointer;
+	background-size: 21px 19px;
+}
+
+#dialog-logo
+{
+	width: 100px;
+	height: 100px;
+
+	position: absolute;
+	
+	background: url(resources/logo_1.jpg) no-repeat;
+
+	background-size: 100px 100px;
+}
+
+#dialog-right-logo
+{
+	width: 120px;
+	height: 52px;
+
+	position: absolute;
+	top:5px;
+	right:5px;
+	
+	background: url(resources/logo_2.jpg) no-repeat;
+
+	background-size: 120px 52px;
+}
+
+#dialog-history
+{
+	height: 65%;
+
+	border-bottom-style: solid;
+	border-color: A9A9A9;
+	border-width: 2px;
+
+	overflow: auto;
+}
+
+
+.dialog-history-content
+{
+	position:relative;
+
+	margin: 15px;
+}
+
+.dialog-history-content-server
+{
+	display: inline-block;
+	background-color: EAEAEA;
+	padding: 10px 20px;
+	border-radius: 13px;
+	margin:0;
+	max-width: 60%;
+}
+
+.dialog-history-content-server-options
+{
+	display: inline-block;
+	padding: 0px 20px;
+	margin:0;
+}
+
+.dialog-history-content-server-option
+{
+	border-style: solid;
+	border-width: 1px;
+	border-color: red;
+	border-radius: 10px;
+
+	padding: 5px;
+	margin: 5px;
+
+	text-align: center;
+	cursor: pointer;
+}
+
+.dialog-history-content-server-empty
+{
+	display: inline-block;
+	height:10px;
+	
+	position:absolute;
+	bottom:0;
+	left:0;
+}
+
+.dialog-history-content-server-empty:before
+{
+	content: "";
+	width: 0px;
+	height: 0px;
+	border-style: solid;
+	border-color: EAEAEA;
+	border-width: 5px 1px 10px 10px;
+	border-radius: 0px 0px 18px 0px;
+	display: block;
+	position: absolute;
+}
+
+.dialog-history-content-user
+{
+	float:right;
+
+	display: inline-block;
+	background-color: F7C0C0;
+	padding: 10px 20px;
+	border-radius: 13px;
+
+	word-wrap: break-word;
+	max-width: 60%;
+}
+
+.dialog-history-content-user-empty
+{
+	clear:right;
+}
+
+.dialog-history-content-user-empty:after
+{
+	content: "";
+	width: 0px;
+	height: 0px;
+	border-style: solid;
+	border-color: F7C0C0;
+	border-width: 5px 10px 10px 1px;
+	border-radius: 0px 0px 0px 18px;
+	display: block;
+	position: relative;
+	float: right;
+	top: -10px;
+}
+
+#dialog-input
+{
+	position:relative;
+	height:7%;
+}
+
+#dialog-input-textarea
+{
+	resize: none;
+
+	position:absolute;
+	left: 15px;
+
+	border-radius: 10px;
+	outline: none;
+	font-size:17px;
+
+	padding:3px 5px 3px 5px;
+
+	width: 75%;
+}
+
+#dialog-input-btn
+{
+	position:absolute;
+	right:15px;
+
+	width: 35px;
+	height: 35px;
+
+	background: url(resources/send-button.png) no-repeat;
+
+	cursor: pointer;
+	background-size: 35px 35px;
+}
+
+.accordion .ui-state-default
+{
+	border:0;
+	background: transparent;
+	color:red;
+	padding: 0.5em 0 0.5em 2.2em;
+}
+
+.accordion .ui-widget-content
+{
+	border:0;
+	background: transparent;
+}
+
+.accordion .ui-accordion-content
+{
+	padding: 0 0 0 2.2em;
+}
+
+.accordion p
+{
+	margin:0;
+}
+
+</style>
+
+</head>
+<body>
+	<img id="bottom-icon" src="resources/bottom-icon.png" />
+	<div id="dialog-container">
+		<div id="dialog-head">
+			<div id="dialog-head-top"></div>
+			<div id="dialog-head-bottom">
+				<div id="dialog-head-title">Chatbot</div>
+			</div>
+			<div id="dialog-close"></div>
+			<div id="dialog-logo"></div>
+			<div id="dialog-right-logo"></div>
+		</div>
+		<div id="dialog-history"></div>
+		<div id="dialog-input">
+			<textarea id="dialog-input-textarea" rows="1"></textarea>
+			<div id="dialog-input-btn"></div>
+		</div>
+		
+		<div id="dialog-top"></div>
+		<div id="dialog-right"></div>
+		<div id="dialog-bottom"></div>
+		<div id="dialog-left"></div>
+	</div>
+</body>
+</html>
