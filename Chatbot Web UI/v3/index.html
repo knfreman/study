@@ -1,0 +1,341 @@
+﻿<html>
+	<head>
+		<script src="js/jquery.min.js"></script>
+		<script>
+			$(document).ready(function(){
+				console.log("The page is ready.");
+
+				centerY("chatbot-body-container-console","chatbot-body-container-console-container");
+				centerX("chatbot-body-container-console","chatbot-body-container-console-container");
+
+				centerY("chatbot-head","chatbot-head-author");
+
+				// 绑定点击按钮事件
+				$("#chatbot-body-container-console-container-btn").on('click',function(e){
+					console.log("Button 'send' is clicked.");
+					sendQuestion();
+				});
+
+				// 绑定键盘回车事件
+				$("#chatbot-body-container-console-container-textbox").on("keyup", function(e){
+					var eCode=e.keyCode?e.keyCode:e.which?e.which:e.charCode;
+				
+					if(eCode==13){
+						sendQuestion();
+						return;
+					}
+				});
+
+				// 显示问题
+				function showQuestion(q){
+					var question=$("<div class='chatbot-body-container-body-content-question'></div>").text(q);
+					var emptyDiv=$("<div class='chatbot-body-container-body-content-empty'></div>");
+					var content=$("<div class='chatbot-body-container-body-content'></div>").append(question).append(emptyDiv);
+					$("#chatbot-body-container-body").append(content);
+
+					scrollToBottom();
+					sendRequest(q);
+					showTyping();
+				}
+
+				var typing="typing";
+				var mockedAnswer=""
+					+"<div class='chatbot-body-container-body-content-answer-string'>======== 下面是link ========</div>"
+					+"<div class='chatbot-body-container-body-content-answer-string'>详情请"
+					+"<a class='chatbot-body-container-body-content-answer-link' target='_blank' href='http://www.baidu.com'>点击</a>"
+					+"</div>"
+					+"<div class='chatbot-body-container-body-content-answer-string'>======= 下面是buttons =======</div>"
+					+"<div class='chatbot-body-container-body-content-answer-options'>"
+					+"<div class='chatbot-body-container-body-content-answer-options-option'>支票付款</div>"
+					+"<div class='chatbot-body-container-body-content-answer-options-option'>現金付款</div>"
+					+"<div class='chatbot-body-container-body-content-answer-options-option'>信用卡</div>"
+					+"<div class='chatbot-body-container-body-content-answer-options-option'>銀行本票</div>"
+					+"</div>"
+					+"<div class='chatbot-body-container-body-content-answer-string'>====== 下面是expand/collapse ======</div>"
+					+"<div class='chatbot-body-container-body-content-answer-accordion'>繳交首期保費注意事項</div>"
+					+"<div class='chatbot-body-container-body-content-answer-accordion-panel'>暫無。</div>"
+					+"<div class='chatbot-body-container-body-content-answer-accordion'>手續費</div>"
+					+"<div class='chatbot-body-container-body-content-answer-accordion-panel'><p>非中國建設銀行（亞洲）的本地VISA及MASTER信用卡，須收取手續費。</p></div>";
+
+				// key: elementId, val: intervalId
+				var elementIdAndIntervalIdMap={};
+
+				// 显示“正在输入”
+				function showTyping(){
+					var elementId=(new Date()).getTime()+'-'+Math.round(Math.random());
+					var answerStr=$("<div class='chatbot-body-container-body-content-answer-string' id='"+elementId+"'>"+typing+"</div>")
+					var answer=$("<div class='chatbot-body-container-body-content-answer'></div>").append(answerStr);
+					var emptyDiv=$("<div class='chatbot-body-container-body-content-empty'></div>");
+					var content=$("<div class='chatbot-body-container-body-content'></div>").append(answer).append(emptyDiv);
+					$("#chatbot-body-container-body").append(content);
+
+					var i=0;
+					var intervalId=setInterval(function(){
+						var str=typing;
+						for(let j=0;j<i%7;j++){
+							str=str+".";
+						}
+
+						$("#"+elementId).text(str);
+						i++;
+					},500);
+
+					elementIdAndIntervalIdMap[elementId]=intervalId;
+					scrollToBottom();
+
+					setTimeout(function(){
+						clearInterval(intervalId);
+						var parent=$("#"+elementId).parent();
+						$("#"+elementId).remove();
+							
+						parent.html(mockedAnswer);
+						scrollToBottom();
+
+						// 绑定option点击事件
+						parent.find(".chatbot-body-container-body-content-answer-options-option").each(function(){
+							$(this).on("click",function(){
+								showQuestion(this.innerText);
+
+								$(this).off("click").css("cursor","auto").siblings().each(function(){
+									$(this).off("click").css("cursor","auto");
+								});
+							});
+						});
+
+						// 绑定accordion点击事件
+						answer.find(".chatbot-body-container-body-content-answer-accordion").each(function(){
+							this.innerHTML="<span class='chatbot-body-container-body-content-answer-accordion-icon'></span>"+this.innerHTML;
+
+							$(this).on("click",function(){
+								var panel = this.nextElementSibling;
+								if (panel.style.maxHeight){
+									panel.style.maxHeight = null;
+									panel.style.borderStyle=null;
+									this.querySelector(".chatbot-body-container-body-content-answer-accordion-icon").style.backgroundImage="url(img/arrow-right.jpg)";
+								} else {
+									panel.style.maxHeight="none";
+									panel.style.borderStyle="dashed";
+									this.querySelector(".chatbot-body-container-body-content-answer-accordion-icon").style.backgroundImage="url(img/arrow-down.jpg)";
+								}
+							});
+						});
+					},5000);
+				}
+
+				// 滑动到最底
+				function scrollToBottom(){
+					$("#chatbot-body-container-body").scrollTop(document.getElementById("chatbot-body-container-body").scrollHeight);
+				}
+
+				// 发送问题
+				function sendQuestion(){
+					var textbox=$("#chatbot-body-container-console-container-textbox");
+					var rawVal=textbox.val();
+					console.log("User inputs: "+rawVal);
+					textbox.val("");
+					
+					var trimmedVal;
+					rawVal&&(trimmedVal=rawVal.trim());
+
+					if(!trimmedVal){
+						console.log("Invalid input! Nothing to do.");
+						return;
+					}
+
+					showQuestion(trimmedVal);
+				}
+
+				// 调用后台服务
+				function sendRequest(str){
+					console.log("Send a request to the backend server.");
+				}
+
+				// 竖直居中
+				function centerY(parentId,elementId){
+					var e=document.getElementById(elementId);
+					var elementHeight=e.offsetHeight;
+					var parentHeight=document.getElementById(parentId).clientHeight;
+
+					var offset=(parentHeight-elementHeight)/2;
+					e.style.top=offset;
+				}
+
+				// 水平居中
+				function centerX(parentId,elementId){
+					var e=document.getElementById(elementId);
+					var elementWidth=e.offsetWidth;
+					var parentWidth=document.getElementById(parentId).clientWidth;
+
+					var offset=(parentWidth-elementWidth)/2;
+					e.style.left=offset;
+				}
+			});
+		</script>
+
+		<style type="text/css">
+			body{
+				margin:0;
+			}
+			
+			#chatbot-head{
+				width:100%;
+				height:13%;
+				background-color:#D31145;
+
+				position:relative;
+			}
+
+			#chatbot-head-author{
+				position:absolute;
+				right: 5%;
+				color: #FFFFFFFF;
+				font-size: 22px;
+			}
+
+			#chatbot-body{
+				width:100%;
+				height:87%;
+				background-color: #FBF6F0;
+			}
+
+			#chatbot-body-container{
+				width: 80%;
+				height: 90%;
+				margin: auto;
+			}
+
+			#chatbot-body-container-head, #chatbot-body-container-console{
+				width:100%;
+				height:8%;
+				
+				background-color:#000000;
+				
+				position:relative;
+			}
+
+			#chatbot-body-container-body{
+				width:100%;
+				height: 84%;
+				background-color: #FFFFFF;
+				overflow: auto;
+			}
+
+			#chatbot-body-container-console-container{
+				position:absolute;
+				
+			}
+
+			#chatbot-body-container-console-container-dropdown{
+				background-color: #000000;
+				color: #FFFFFF;
+				border-radius: 4px;
+			}
+
+			#chatbot-body-container-console-container-dropdown:focus{
+				outline-color:#D31145;
+			}
+
+			#chatbot-body-container-console-container-textbox{
+				color: #FFFFFF;
+				background-color: #000000;
+				border-width:1px;
+				border-radius: 4px;
+			}
+
+			#chatbot-body-container-console-container-textbox:focus{
+				outline-color:#D31145;
+			}
+
+			#chatbot-body-container-console-container-btn{
+				cursor: pointer;
+			}
+
+			.chatbot-body-container-body-content {
+				position: relative;
+				margin: 15px;
+				word-wrap: break-word;
+			}
+
+			.chatbot-body-container-body-content-empty {
+				clear: both;
+			}
+
+			.chatbot-body-container-body-content-question {
+				float: right;
+				background-color: #F7C0C0;
+				padding: 10px 20px;
+				border-radius: 7px;
+				max-width: 61.8%;
+			}
+
+			.chatbot-body-container-body-content-answer {
+				float: left;
+				background-color: #EAEAEA;
+				padding: 10px 20px;
+				border-radius: 7px;
+				max-width: 61.8%;
+			}
+
+			.chatbot-body-container-body-content-answer-string {
+			}
+
+			.chatbot-body-container-body-content-answer-link {
+			}
+
+			.chatbot-body-container-body-content-answer-options {
+			}
+
+			.chatbot-body-container-body-content-answer-options-option {
+				cursor:pointer;
+				display:inline-block;
+				border-style:solid;
+				border-width:1px;
+				border-color:#D31145;
+				border-radius:10px;
+				padding:5px;
+				text-align:center;
+				margin:3px;
+			}
+
+			.chatbot-body-container-body-content-answer-accordion {
+				cursor:pointer;
+				margin:5px 0;
+			}
+
+			.chatbot-body-container-body-content-answer-accordion-icon {
+				display:inline-block;
+				width:16px;
+				height:16px;
+				background-image:url(img/arrow-right.jpg);
+				background-size:16px 16px;
+			}
+
+			.chatbot-body-container-body-content-answer-accordion-panel {
+				padding:0 18px;
+				max-height:0;
+				overflow:hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="chatbot-head">
+			<div id="chatbot-head-author"><b>Hello, world!</b></div>
+		</div>
+		<div id="chatbot-body">
+			<div id="chatbot-body-container">
+				<div id="chatbot-body-container-head"></div>
+				<div id="chatbot-body-container-body"></div>
+				<div id="chatbot-body-container-console">
+					<div id="chatbot-body-container-console-container">
+						<select id="chatbot-body-container-console-container-dropdown">
+							<option>English</option>
+							<option>Cantonese</option>
+						</select>
+						<input id="chatbot-body-container-console-container-textbox" />
+						<button id="chatbot-body-container-console-container-btn" >send</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
