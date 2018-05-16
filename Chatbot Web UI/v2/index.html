@@ -1,0 +1,348 @@
+﻿<html>
+	<head>
+		<script src="js/jquery-3.3.1.min.js"></script>
+
+		<script>
+		$(document).ready(function(){
+			console.log("Page is ready.");
+
+			(function(){
+				centerX("chatbot-head","chatbot-head-logo");
+				centerY("chatbot-head","chatbot-head-logo");
+				centerX("chatbot-head-bottom","chatbot-head-bottom-title");
+				centerY("chatbot-head-bottom","chatbot-head-bottom-title");
+				centerY("chatbot-console","chatbot-console-input");
+				centerY("chatbot-console","chatbot-console-btn");
+			})();
+
+			// 绑定发送按钮事件
+			(function(){
+				$("#chatbot-console-btn").on('click',function(){
+					var question = $("#chatbot-console-input").val();
+					$("#chatbot-console-input").val("");
+
+					if(question){
+						question=question.trim()
+					};
+
+					if(!question){
+						return;
+					}
+
+					appendQuestion(question);
+
+					// 发送消息
+					(function sendQuestion(q){
+						
+					})(question);
+
+					var answer=""
+						+"<div class='chatbot-conversation-content-answer-string'>========== 下面是accordion ==========</div>"
+						+"<div class='chatbot-conversation-content-answer-accordion'>繳交首期保費注意事項</div>"
+						+"<div class='chatbot-conversation-content-answer-accordion-panel'><p>暫無。</p></div>"
+						+"<div class='chatbot-conversation-content-answer-accordion'>手續費</div>"
+						+"<div class='chatbot-conversation-content-answer-accordion-panel'><p>非中國建設銀行（亞洲）的本地VISA及MASTER信用卡，須收取手續費，新保單及續保保單爲1.5%。</p></div>"
+						+"<div class='chatbot-conversation-content-answer-string'>========== 下面是options ==========</div>"
+						+"<div class='chatbot-conversation-content-answer-options'>"
+						+"<div class='chatbot-conversation-content-answer-options-option'>支票付款</div>"
+						+"<div class='chatbot-conversation-content-answer-options-option'>現金付款</div>"
+						+"<div class='chatbot-conversation-content-answer-options-option'>信用卡</div>"
+						+"<div class='chatbot-conversation-content-answer-options-option'>銀行本票</div>"
+						+"</div>"
+						+"<div class='chatbot-conversation-content-answer-string'>========== 下面是link ==========</div>"
+						+"<div class='chatbot-conversation-content-answer-string'>详情请"
+						+"<a class='chatbot-conversation-content-answer-link' target='_blank' href='http://www.baidu.com'>点击</a>"
+						+"</div>"
+						+"<div class='chatbot-conversation-content-answer-string'>========= 下面是unordered list =========</div>"
+						+"<ul class='chatbot-conversation-content-answer-unodered-list'>"
+						+"<li>查詢保費繳費方法(只適用於香港保單)</li>"
+						+"<li>查詢更正錯誤繳費方法(只適用於香港保單)</li>"
+						+"<li>查詢新保單跟進事項</li>"
+						+"</ul>"
+						+"<div class='chatbot-conversation-content-answer-string'>========== 下面是ordered list ==========</div>"
+						+"<ol class='chatbot-conversation-content-answer-ordered-list'>"
+						+"<li>首先先關閉「友聯繫」的“索償服務”</li>"
+						+"<li>接著到首頁選擇左上角的“主目錄”選項</li>"
+						+"<li>選擇“設定”</li>"
+						+"</ol>";
+
+					// 显示答案
+					(function appendAnswer(ans){
+						var answer=$("<div class='chatbot-conversation-content-answer'></div>").html(ans);
+						var content=$("<div class='chatbot-conversation-content'></div>").append(answer);
+						$("#chatbot-conversation").append(content);
+
+						// 绑定accordion点击事件
+						answer.find(".chatbot-conversation-content-answer-accordion").each(function(){
+							this.innerHTML="<span class='chatbot-conversation-content-answer-accordion-icon'></span>"+this.innerHTML;
+
+							$(this).on("click",function(){
+								var panel = this.nextElementSibling;
+								if (panel.style.maxHeight){
+									panel.style.maxHeight = null;
+									panel.style.borderStyle=null;
+									this.querySelector(".chatbot-conversation-content-answer-accordion-icon").style.backgroundImage="url(images/arrow-right.jpg)";
+								} else {
+									panel.style.maxHeight="none";
+									panel.style.borderStyle="dashed";
+									this.querySelector(".chatbot-conversation-content-answer-accordion-icon").style.backgroundImage="url(images/arrow-down.jpg)";
+								}
+							});
+						});
+
+						// 绑定option点击事件
+						answer.find(".chatbot-conversation-content-answer-options-option").each(function(){
+							$(this).on("click",function(){
+								appendQuestion(this.innerText);
+								$(this).off("click").css("cursor","auto").siblings().each(function(){
+									$(this).off("click").css("cursor","auto");
+								});
+							});
+						});
+
+						scrollToBottom();
+					})(answer);
+				});
+			})();
+
+			// 水平居中
+			function centerX(containerId,targetId){
+				var containerWidth=$("#"+containerId).outerWidth();
+				var targetWidth=$("#"+targetId).outerWidth();
+
+				var left=(containerWidth-targetWidth)/2;
+				$("#"+targetId).css("left",left);
+			}
+
+			// 垂直居中
+			function centerY(containerId,targetId){
+				var containerHeight=$("#"+containerId).outerHeight();
+				var targetHeight=$("#"+targetId).outerHeight();
+
+				var top=(containerHeight-targetHeight)/2;
+				$("#"+targetId).css("top",top);
+			}
+
+			// 显示问题
+			function appendQuestion(q){
+				var question=$("<div class='chatbot-conversation-content-question'></div>").text(q);
+				var emptyDiv=$("<div class='chatbot-conversation-content-question-empty'></div>");
+				var content=$("<div class='chatbot-conversation-content'></div>");
+
+				content.append(question).append(emptyDiv);
+				$("#chatbot-conversation").append(content);
+
+				scrollToBottom();
+			}
+
+			function scrollToBottom(){
+				$("#chatbot-conversation").scrollTop(document.getElementById("chatbot-conversation").scrollHeight);
+			}
+		});
+		</script>
+
+
+		<style type="text/css">
+			body
+			{
+				margin:0;
+				border:0;
+				padding:0;
+			}
+
+			#chatbot-head
+			{
+				width:100%;
+				height:27%;
+
+				border-bottom-style: solid;
+				border-bottom-left-radius: 50px;
+				border-bottom-right-radius: 50px;
+				border-color: #A9A9A9;
+				border-width: 0 0 2px 0;
+
+				position: relative;
+			}
+
+			#chatbot-head-logo
+			{
+				width: 100px;
+				height: 100px;
+
+				position:absolute;
+
+				background: url(images/logo.jpg) no-repeat;
+				background-size: 100% 100%;
+			}
+
+			#chatbot-head-top
+			{
+				width:100%;
+				height:60%;
+				background-color: #D31145;
+			}
+
+			#chatbot-head-bottom
+			{
+				width:100%;
+				height:40%;
+				position:relative;
+			}
+
+			#chatbot-head-bottom-title
+			{
+				position:absolute;
+			}
+
+			#chatbot-conversation
+			{
+				width:100%;
+				height:65%;
+
+				border-bottom-style: solid;
+				border-color: #A9A9A9;
+				border-width: 2px;
+
+				overflow: auto;
+			}
+
+			.chatbot-conversation-content
+			{
+				position: relative;
+				margin: 15px;
+				word-wrap: break-word;
+			}
+
+			.chatbot-conversation-content-question
+			{
+				float: right;
+				display: inline-block;
+				background-color: #F7C0C0;
+				padding: 10px 20px;
+				border-radius: 7px;
+				max-width: 60%;
+			}
+
+			.chatbot-conversation-content-question-empty
+			{
+				clear: right;
+			}
+
+			.chatbot-conversation-content-answer
+			{
+				display: inline-block;
+				background-color: #EAEAEA;
+				padding: 10px 20px;
+				border-radius: 7px;
+				margin: 0;
+				max-width: 61.8%;
+			}
+
+			.chatbot-conversation-content-answer-string
+			{
+			}
+
+			.chatbot-conversation-content-answer-options
+			{
+			}
+
+			.chatbot-conversation-content-answer-options-option
+			{
+				cursor: pointer;
+				display: inline-block;
+				border-style: solid;
+				border-width: 1px;
+				border-color: #D31145;
+				border-radius: 10px;
+				padding: 5px;
+				text-align: center;
+				margin: 3px;
+			}
+
+			.chatbot-conversation-content-answer-accordion
+			{
+				cursor: pointer;
+				margin: 5px 0;
+			}
+
+			.chatbot-conversation-content-answer-accordion-icon
+			{
+				display: inline-block;
+				width: 16px;
+				height: 16px;
+				background-image: url(images/arrow-right.jpg);
+				//background-image: url(images/button.png);
+				background-position: -32px -16px;
+				background-size: 16px 16px;
+			}
+
+			.chatbot-conversation-content-answer-accordion-panel
+			{
+				padding: 0 18px;
+    				max-height: 0;
+    				overflow: hidden;
+			}
+
+			.chatbot-conversation-content-answer-link
+			{
+			}
+
+			.chatbot-conversation-content-answer-ordered-list
+			{
+				margin: 0;
+				padding: 0 0 0 20;
+			}
+
+			.chatbot-conversation-content-answer-unodered-list
+			{
+				margin: 0;
+				padding: 0 0 0 20;
+			}
+
+			#chatbot-console
+			{
+				width:100%;
+				height:7%;
+				position:relative;
+			}
+
+			#chatbot-console-input
+			{
+				resize:none;
+				position:absolute;
+				left: 15px;
+				border-radius: 7px;
+				outline: none;
+				font-size: 17px;
+				padding: 3px 5px 3px 5px;
+				width: 75%;
+			}
+
+			#chatbot-console-btn
+			{
+				position: absolute;
+				right: 15px;
+				width: 35px;
+				height: 35px;
+				background: url(images/button.png) no-repeat;
+				cursor: pointer;
+				background-size: 35px 35px;
+			}
+		</style>
+
+	</head>
+	<body>
+		<div id="chatbot-head">
+			<div id="chatbot-head-top"></div>
+			<div id="chatbot-head-bottom">
+				<div id="chatbot-head-bottom-title">Chatbot</div>
+			</div>
+			<div id="chatbot-head-logo"></div>
+		</div>
+		<div id="chatbot-conversation"></div>
+		<div id="chatbot-console">
+			<textarea id="chatbot-console-input" rows="1"></textarea>
+			<div id="chatbot-console-btn"></div>
+		</div>
+	</body>
+</html>
