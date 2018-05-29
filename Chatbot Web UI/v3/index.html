@@ -9,6 +9,7 @@
 				centerX("chatbot-body-container-console","chatbot-body-container-console-container");
 
 				centerY("chatbot-head","chatbot-head-author");
+				centerY("chatbot-head","chatbot-head-logo");
 
 				// 绑定点击按钮事件
 				$("#chatbot-body-container-console-container-btn").on('click',function(e){
@@ -30,7 +31,11 @@
 				function showQuestion(q){
 					var question=$("<div class='chatbot-body-container-body-content-question'></div>").text(q);
 					var emptyDiv=$("<div class='chatbot-body-container-body-content-empty'></div>");
-					var content=$("<div class='chatbot-body-container-body-content'></div>").append(question).append(emptyDiv);
+					var dateDiv=$("<div class='chatbot-body-container-body-content-question-datetime'></div>").text((new Date()).toLocaleString());
+					var content=$("<div class='chatbot-body-container-body-content'></div>").append(question).append(emptyDiv).append(dateDiv);
+					emptyDiv=$("<div class='chatbot-body-container-body-content-empty'></div>");
+					content.append(emptyDiv);
+					
 					$("#chatbot-body-container-body").append(content);
 
 					scrollToBottom();
@@ -40,22 +45,22 @@
 
 				var typing="typing";
 				var mockedAnswer=""
-					+"<div class='chatbot-body-container-body-content-answer-string'>======== 下面是link ========</div>"
-					+"<div class='chatbot-body-container-body-content-answer-string'>详情请"
-					+"<a class='chatbot-body-container-body-content-answer-link' target='_blank' href='http://www.baidu.com'>点击</a>"
+					+"<div class='chatbot-body-container-body-content-answer-string'>======== Link ========</div>"
+					+"<div class='chatbot-body-container-body-content-answer-string'>Please refer to "
+					+"<a class='chatbot-body-container-body-content-answer-link' target='_blank' href='http://www.google.com'>document.pdf</a>"
+					+"."
 					+"</div>"
-					+"<div class='chatbot-body-container-body-content-answer-string'>======= 下面是buttons =======</div>"
+					+"<div class='chatbot-body-container-body-content-answer-string'>======= Buttons/Options =======</div>"
 					+"<div class='chatbot-body-container-body-content-answer-options'>"
-					+"<div class='chatbot-body-container-body-content-answer-options-option'>支票付款</div>"
-					+"<div class='chatbot-body-container-body-content-answer-options-option'>現金付款</div>"
-					+"<div class='chatbot-body-container-body-content-answer-options-option'>信用卡</div>"
-					+"<div class='chatbot-body-container-body-content-answer-options-option'>銀行本票</div>"
+					+"<div class='chatbot-body-container-body-content-answer-options-option'>Cheque</div>"
+					+"<div class='chatbot-body-container-body-content-answer-options-option'>Cash</div>"
+					+"<div class='chatbot-body-container-body-content-answer-options-option'>Credit Card</div>"
 					+"</div>"
-					+"<div class='chatbot-body-container-body-content-answer-string'>====== 下面是expand/collapse ======</div>"
-					+"<div class='chatbot-body-container-body-content-answer-accordion'>繳交首期保費注意事項</div>"
-					+"<div class='chatbot-body-container-body-content-answer-accordion-panel'>暫無。</div>"
-					+"<div class='chatbot-body-container-body-content-answer-accordion'>手續費</div>"
-					+"<div class='chatbot-body-container-body-content-answer-accordion-panel'><p>非中國建設銀行（亞洲）的本地VISA及MASTER信用卡，須收取手續費。</p></div>";
+					+"<div class='chatbot-body-container-body-content-answer-string'>====== Expand/Collapse ======</div>"
+					+"<div class='chatbot-body-container-body-content-answer-accordion'>Title 1st</div>"
+					+"<div class='chatbot-body-container-body-content-answer-accordion-panel'>Details.</div>"
+					+"<div class='chatbot-body-container-body-content-answer-accordion'>Title 2nd</div>"
+					+"<div class='chatbot-body-container-body-content-answer-accordion-panel'><p>Details.</p></div>";
 
 				// key: elementId, val: intervalId
 				var elementIdAndIntervalIdMap={};
@@ -85,14 +90,19 @@
 
 					setTimeout(function(){
 						clearInterval(intervalId);
-						var parent=$("#"+elementId).parent();
+						var answer =$("#"+elementId).parent();
 						$("#"+elementId).remove();
-							
-						parent.html(mockedAnswer);
+						answer.html(mockedAnswer);
+						var content=answer.parent();
+						content.append($("<div class='chatbot-body-container-body-content-answer-datetime'></div>")
+										.html((new Date()).toLocaleString()
+										+"<span class='chatbot-body-container-body-content-answer-good'></span>"
+										+"<span class='chatbot-body-container-body-content-answer-bad'></span>"))
+										.append($("<div class='chatbot-body-container-body-content-empty'></div>"));
 						scrollToBottom();
 
 						// 绑定option点击事件
-						parent.find(".chatbot-body-container-body-content-answer-options-option").each(function(){
+						answer.find(".chatbot-body-container-body-content-answer-options-option").each(function(){
 							$(this).on("click",function(){
 								showQuestion(this.innerText);
 
@@ -118,6 +128,17 @@
 									this.querySelector(".chatbot-body-container-body-content-answer-accordion-icon").style.backgroundImage="url(img/arrow-down.jpg)";
 								}
 							});
+						});
+						
+						// 绑定good/bad点击事件
+						content.find(".chatbot-body-container-body-content-answer-good").on('click',function(){
+							console.log("This is a good answer.");
+							$(this).off("click").css("cursor","auto").siblings(".chatbot-body-container-body-content-answer-bad").css("display","none");
+						});
+						
+						content.find(".chatbot-body-container-body-content-answer-bad").on('click',function(){
+							console.log("This is a bad answer.");
+							$(this).off("click").css("cursor","auto").siblings(".chatbot-body-container-body-content-answer-good").css("display","none");;
 						});
 					},5000);
 				}
@@ -183,6 +204,15 @@
 				background-color:#D31145;
 
 				position:relative;
+			}
+
+			#chatbot-head-logo {
+				width: 100px;
+				height: 100px;
+				left: 5%;
+				position: absolute;
+				background: url(img/logo.jpg) no-repeat;
+				background-size: 100px 100px;
 			}
 
 			#chatbot-head-author{
@@ -267,6 +297,11 @@
 				border-radius: 7px;
 				max-width: 61.8%;
 			}
+			
+			.chatbot-body-container-body-content-question-datetime{
+				float: right;
+				margin: 5px 0 0 0;
+			}
 
 			.chatbot-body-container-body-content-answer {
 				float: left;
@@ -274,6 +309,31 @@
 				padding: 10px 20px;
 				border-radius: 7px;
 				max-width: 61.8%;
+			}
+			
+			.chatbot-body-container-body-content-answer-datetime{
+				float: left;
+				margin: 5px 0 0 0;
+			}
+			
+			.chatbot-body-container-body-content-answer-good {
+				display: inline-block;
+				width: 15px;
+				height: 15px;
+				background-image: url(img/good.jpg);
+				background-size: 15px 15px;
+				margin: 0 0 0 5px;
+				cursor: pointer;
+			}
+			
+			.chatbot-body-container-body-content-answer-bad {
+				display: inline-block;
+				width: 15px;
+				height: 15px;
+				background-image: url(img/bad.jpg);
+				background-size: 15px 15px;
+				margin: 0 0 0 5px;
+				cursor: pointer;
 			}
 
 			.chatbot-body-container-body-content-answer-string {
@@ -319,6 +379,7 @@
 	</head>
 	<body>
 		<div id="chatbot-head">
+			<div id="chatbot-head-logo"></div>
 			<div id="chatbot-head-author"><b>Hello, world!</b></div>
 		</div>
 		<div id="chatbot-body">
