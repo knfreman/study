@@ -1,0 +1,401 @@
+<html>
+	<head>
+		<script src="js/jquery.min.js"></script>
+		<script>
+			$(document).ready(function(){
+				console.log("The page is ready.");
+				align();
+				window.onresize=align;
+
+				// 绑定点击按钮事件
+				$("#chatbot-send").on('click',function(e){
+					console.log("Button 'send' is clicked.");
+					sendUserInput();
+				});
+				
+				// 绑定键盘回车事件
+				$("#chatbot-input").on("keyup", function(e){
+					var eCode=e.keyCode?e.keyCode:e.which?e.which:e.charCode;
+				
+					if(eCode==13){
+						sendUserInput();
+						return;
+					}
+				});
+				
+				// 发送问题
+				function sendUserInput(){
+					var textbox=$("#chatbot-input");
+					var rawVal=textbox.val();
+					console.log("User inputs: "+rawVal);
+					textbox.val("");
+					
+					var trimmedVal;
+					rawVal&&(trimmedVal=rawVal.trim());
+
+					if(!trimmedVal){
+						console.log("Invalid input! Nothing to do.");
+						return;
+					}
+
+					showUserInput(trimmedVal);
+				}
+				
+				// 显示问题
+				function showUserInput(q){
+					var userInput=$("<div class='conversation-content-user'></div>").text(q);
+					var emptyDiv=$("<div class='conversation-content-empty'></div>");
+					var dateDiv=$("<div class='conversation-content-user-datetime'></div>").text((new Date()).toLocaleString());
+					var content=$("<div class='conversation-content'></div>").append(userInput).append(emptyDiv).append(dateDiv);
+					emptyDiv=$("<div class='conversation-content-empty'></div>");
+					content.append(emptyDiv);
+					
+					$("#chatbot-main").append(content);
+
+					scrollToBottom();
+					sendRequest(q);
+					showTyping();
+				}
+				
+				var typing="typing";
+				var mockedAnswer=""
+					+"<div class='conversation-content-chatbot-string'>===== Link =====</div>"
+					+"<div class='conversation-content-chatbot-string'>Please refer to "
+					+"<a class='conversation-content-chatbot-link' target='_blank' href='http://www.google.com'>Google</a>"
+					+"."
+					+"</div>"
+					+"<div class='conversation-content-chatbot-string'>== Buttons/Options ==</div>"
+					+"<div class='conversation-content-chatbot-options'>"
+					+"<div class='conversation-content-chatbot-options-option'>Cheque</div>"
+					+"<div class='conversation-content-chatbot-options-option'>Cash</div>"
+					+"</div>"
+					+"<div class='conversation-content-chatbot-string'>== Expand/Collapse ==</div>"
+					+"<div class='conversation-content-chatbot-accordion'>Title 1st</div>"
+					+"<div class='conversation-content-chatbot-accordion-panel'>Details.</div>"
+					+"<div class='conversation-content-chatbot-accordion'>Title 2nd</div>"
+					+"<div class='conversation-content-chatbot-accordion-panel'><p>Details.</p></div>";
+
+				// key: elementId, val: intervalId
+				var elementIdAndIntervalIdMap={};
+
+				// 显示“正在输入”
+				function showTyping(){
+					var elementId=(new Date()).getTime()+'-'+Math.round(Math.random());
+					var chatbotInputStr=$("<div class='conversation-content-chatbot-string' id='"+elementId+"'>"+typing+"</div>")
+					var chatbotInput=$("<div class='conversation-content-chatbot'></div>").append(chatbotInputStr);
+					var emptyDiv=$("<div class='conversation-content-empty'></div>");
+					var content=$("<div class='conversation-content'></div>").append(chatbotInput).append(emptyDiv);
+					$("#chatbot-main").append(content);
+
+					var i=0;
+					var intervalId=setInterval(function(){
+						var str=typing;
+						for(let j=0;j<i%7;j++){
+							str=str+".";
+						}
+
+						$("#"+elementId).text(str);
+						i++;
+					},500);
+
+					elementIdAndIntervalIdMap[elementId]=intervalId;
+					scrollToBottom();
+
+					setTimeout(function(){
+						clearInterval(intervalId);
+						var chatbotInput =$("#"+elementId).parent();
+						$("#"+elementId).remove();
+						chatbotInput.html(mockedAnswer);
+						var datetime=$("<span class='conversation-content-chatbot-datetime'></span>").text((new Date()).toLocaleString());
+						var feedbacks=$("<span></span>").html("<span class='conversation-content-chatbot-good'></span>"+"<span class='conversation-content-chatbot-bad'></span>");
+						var bottom=$("<div class='conversation-content-chatbot-bottom'></div>").append(datetime).append(feedbacks);
+						var emptyDiv=$("<div class='conversation-content-empty'></div>");
+						chatbotInput.parent().append(bottom).append(emptyDiv);
+						scrollToBottom();
+
+						// 绑定option点击事件
+						chatbotInput.find(".conversation-content-chatbot-options-option").each(function(){
+							$(this).on("click",function(){
+								showUserInput(this.innerText);
+
+								$(this).off("click").css("cursor","auto").siblings().each(function(){
+									$(this).off("click").css("cursor","auto");
+								});
+							});
+						});
+
+						// 绑定accordion点击事件
+						chatbotInput.find(".conversation-content-chatbot-accordion").each(function(){
+							this.innerHTML="<span class='conversation-content-chatbot-accordion-icon'></span>"+this.innerHTML;
+
+							$(this).on("click",function(){
+								var panel = this.nextElementSibling;
+								if (panel.style.maxHeight){
+									panel.style.maxHeight = null;
+									panel.style.borderStyle=null;
+									this.querySelector(".conversation-content-chatbot-accordion-icon").style.backgroundImage="url(img/arrow-right.jpg)";
+								} else {
+									panel.style.maxHeight="none";
+									panel.style.borderStyle="dashed";
+									this.querySelector(".conversation-content-chatbot-accordion-icon").style.backgroundImage="url(img/arrow-down.jpg)";
+								}
+							});
+						});
+						
+						// 绑定good/bad点击事件
+						feedbacks.find(".conversation-content-chatbot-good").on('click',function(){
+							console.log("This is a good answer.");
+							$(this).off("click").css("cursor","auto").siblings(".conversation-content-chatbot-bad").remove();
+						});
+						
+						feedbacks.find(".conversation-content-chatbot-bad").on('click',function(){
+							console.log("This is a bad answer.");
+							$(this).off("click").css("cursor","auto").siblings(".conversation-content-chatbot-good").remove();
+						});
+					},5000);
+				}
+				
+				// 滑动到最底
+				function scrollToBottom(){
+					$("#chatbot-main").scrollTop(document.getElementById("chatbot-main").scrollHeight);
+				}
+				
+				// 调用后台服务
+				function sendRequest(str){
+					console.log("Send a request to the backend server.");
+				}
+				
+				function align(){
+					// 竖直居中
+					function centerY(parentId,elementId){
+						var e=document.getElementById(elementId);
+						var elementHeight=e.offsetHeight;
+						var parentHeight=document.getElementById(parentId).clientHeight;
+
+						var offset=(parentHeight-elementHeight)/2;
+						e.style.top=offset;
+					}
+				
+					// 水平居中
+					function centerX(parentId,elementId){
+						var e=document.getElementById(elementId);
+						var elementWidth=e.offsetWidth;
+						var parentWidth=document.getElementById(parentId).clientWidth;
+
+						var offset=(parentWidth-elementWidth)/2;
+						e.style.left=offset;
+					}
+					
+					centerY("chatbot-logo","chatbot-logo-panda");
+					centerY("chatbot-logo","chatbot-logo-team");
+				
+					centerX("chatbot-bottom","chatbot-console");
+					centerY("chatbot-bottom","chatbot-console");
+				}
+			});
+		</script>
+
+		<style type="text/css">
+			body{
+				margin:0;
+				border-width:0;
+				padding:0;
+			}
+			
+			#chatbot-logo{
+				width:100vw;
+				height:15vh;
+				background-color: #D31145;
+				position: relative;
+			}
+			
+			#chatbot-logo-panda {
+				width: 12vh;
+				height: 12vh;
+				left: 5vw;
+				position: absolute;
+				background: url(img/logo.jpg) no-repeat;
+				background-size: 12vh 12vh;
+			}
+			
+			#chatbot-logo-team {
+				position: absolute;
+				right: 5vw;
+				color: #FFFFFF;
+				font-size: 4vw;
+			}
+			
+			#chatbot-name{
+				width: 100vw;
+				height: 5vh;
+				color: #FFFFFF;
+				font-size: 3vh;
+				background-color: #000000;
+				line-height: 5vh;
+				text-indent: 5vw;
+			}
+			
+			#chatbot-main{
+				width: 100vw;
+				height: 73vh;
+				background-color: #FFFFFF;
+				overflow: auto;
+			}
+			
+			.conversation-content{
+				position: relative;
+				margin: 3vw;
+				word-wrap: break-word;
+			}
+			
+			.conversation-content-empty{
+				clear: both;
+			}
+			
+			.conversation-content-user{
+				float: right;
+				background-color: #F7C0C0;
+				padding: 2vw;
+				border-radius: 2.5vw;
+				max-width: 61.8vw;
+				font-size: 5vw;
+			}
+			
+			.conversation-content-user-datetime{
+				float: right;
+				margin: 1vw 0 0 0;
+				font-size: 3.3vw;
+			}
+			
+			.conversation-content-chatbot{
+				float: left;
+				background-color: #EAEAEA;
+				padding: 2vw;
+				border-radius: 2.5vw;
+				max-width: 61.8vw;
+				font-size: 5vw;
+			}
+			
+			.conversation-content-chatbot-datetime{
+				font-size: 3.3vw;
+			}
+			
+			.conversation-content-chatbot-bottom{
+				float: left;
+				margin: 1vw 0 0 0;
+				//width: 61.8vw;
+			}
+			
+			.conversation-content-chatbot-good {
+				display: inline-block;
+				width: 3.3vw;
+				height: 3.3vw;
+				background-image: url(img/good.jpg);
+				background-size: 3.3vw 3.3vw;
+				margin: 0 0 0 2vw;
+				cursor: pointer;
+			}
+			
+			.conversation-content-chatbot-bad {
+				display: inline-block;
+				width: 3.3vw;
+				height: 3.3vw;
+				background-image: url(img/bad.jpg);
+				background-size: 3.3vw 3.3vw;
+				margin: 0 0 0 2vw;
+				cursor: pointer;
+			}
+
+			.conversation-content-chatbot-string{
+			}
+
+			.conversation-content-chatbot-link{
+			}
+
+			.conversation-content-chatbot-options{
+			}
+
+			.conversation-content-chatbot-options-option {
+				cursor: pointer;
+				display: inline-block;
+				border-style: solid;
+				border-width: 0.3vw;
+				border-color: #D31145;
+				border-radius: 2.5vw;
+				padding: 1vw;
+				text-align: center;
+				margin: 0.5vw;
+			}
+
+			.conversation-content-chatbot-accordion {
+				cursor:pointer;
+				margin:0.5vw 0;
+			}
+
+			.conversation-content-chatbot-accordion-icon {
+				display:inline-block;
+				width:5vw;
+				height:5vw;
+				background-image:url(img/arrow-right.jpg);
+				background-size:5vw 5vw;
+			}
+
+			.conversation-content-chatbot-accordion-panel {
+				padding:0.5vw;
+				max-height:0;
+				overflow:hidden;
+			}
+			
+			#chatbot-bottom{
+				height: 7vh;
+				background-color: #000000;
+				
+				position: relative;
+			}
+			
+			#chatbot-console{
+				position: absolute;
+			}
+			
+			#chatbot-input{
+				color: #FFFFFF;
+				background-color: #000000;
+				border-width: 0.2vh;
+				border-radius: 1.3vh;
+				height: 5vh;
+				width: 75vw;
+				font-size: 3vh;
+				padding: 0 2vw;
+				vertical-align: middle;
+			}
+			
+			#chatbot-input:focus{
+				outline-color:#D31145;
+			}
+			
+			#chatbot-send{
+				display: inline-block;
+				width: 5.4vh;
+				height: 5.4vh;
+				vertical-align: middle;
+				background: url(img/send-button.png) no-repeat;
+				background-size: 5.4vh 5.4vh;
+				cursor: pointer;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="chatbot-logo">
+			<div id="chatbot-logo-panda"></div>
+			<div id="chatbot-logo-team"><b>Hello, world!</b></div>
+		</div>
+		<div id="chatbot-name"><b>BOT, Panda's BOT</b></div>
+		<div id="chatbot-main"></div>
+		<div id="chatbot-bottom">
+			<div id="chatbot-console">
+				<input id="chatbot-input" />
+				<span id="chatbot-send"></span>
+			</div>
+		</div>
+	</body>
+</html>
