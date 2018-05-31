@@ -4,12 +4,10 @@
 		<script>
 			$(document).ready(function(){
 				console.log("The page is ready.");
+				align();
+				window.onresize=align;
 
-				centerY("chatbot-body-container-console","chatbot-body-container-console-container");
-				centerX("chatbot-body-container-console","chatbot-body-container-console-container");
-
-				centerY("chatbot-head","chatbot-head-author");
-				centerY("chatbot-head","chatbot-head-logo");
+				
 
 				// 绑定点击按钮事件
 				$("#chatbot-body-container-console-container-btn").on('click',function(e){
@@ -47,7 +45,7 @@
 				var mockedAnswer=""
 					+"<div class='chatbot-body-container-body-content-answer-string'>======== Link ========</div>"
 					+"<div class='chatbot-body-container-body-content-answer-string'>Please refer to "
-					+"<a class='chatbot-body-container-body-content-answer-link' target='_blank' href='http://www.google.com'>document.pdf</a>"
+					+"<a class='chatbot-body-container-body-content-answer-link' target='_blank' href='http://www.google.com'>Google</a>"
 					+"."
 					+"</div>"
 					+"<div class='chatbot-body-container-body-content-answer-string'>======= Buttons/Options =======</div>"
@@ -93,12 +91,13 @@
 						var answer =$("#"+elementId).parent();
 						$("#"+elementId).remove();
 						answer.html(mockedAnswer);
-						var content=answer.parent();
-						content.append($("<div class='chatbot-body-container-body-content-answer-datetime'></div>")
-										.html((new Date()).toLocaleString()
-										+"<span class='chatbot-body-container-body-content-answer-good'></span>"
-										+"<span class='chatbot-body-container-body-content-answer-bad'></span>"))
-										.append($("<div class='chatbot-body-container-body-content-empty'></div>"));
+						var datetime=$("<span class='chatbot-body-container-body-content-answer-datetime'></span>").text((new Date()).toLocaleString());
+						var feedbacks=$("<span class='chatbot-body-container-body-content-answer-feedbacks'></span>")
+							.html("<span class='chatbot-body-container-body-content-answer-feedbacks-good'></span>"
+							+"<span class='chatbot-body-container-body-content-answer-feedbacks-bad'></span>");
+						var emptyDiv=$("<div class='chatbot-body-container-body-content-empty'></div>");
+						var bottom=$("<div class='chatbot-body-container-body-content-answer-bottom'></div>").append(datetime).append(feedbacks);
+						answer.parent().append(bottom).append(emptyDiv);
 						scrollToBottom();
 
 						// 绑定option点击事件
@@ -131,14 +130,14 @@
 						});
 						
 						// 绑定good/bad点击事件
-						content.find(".chatbot-body-container-body-content-answer-good").on('click',function(){
+						feedbacks.find(".chatbot-body-container-body-content-answer-feedbacks-good").on('click',function(){
 							console.log("This is a good answer.");
-							$(this).off("click").css("cursor","auto").siblings(".chatbot-body-container-body-content-answer-bad").css("display","none");
+							$(this).off("click").css("cursor","auto").siblings(".chatbot-body-container-body-content-answer-feedbacks-bad").remove();
 						});
 						
-						content.find(".chatbot-body-container-body-content-answer-bad").on('click',function(){
+						feedbacks.find(".chatbot-body-container-body-content-answer-feedbacks-bad").on('click',function(){
 							console.log("This is a bad answer.");
-							$(this).off("click").css("cursor","auto").siblings(".chatbot-body-container-body-content-answer-good").css("display","none");;
+							$(this).off("click").css("cursor","auto").siblings(".chatbot-body-container-body-content-answer-feedbacks-good").remove();
 						});
 					},5000);
 				}
@@ -169,6 +168,14 @@
 				// 调用后台服务
 				function sendRequest(str){
 					console.log("Send a request to the backend server.");
+				}
+				
+				function align(){
+					centerY("chatbot-body-container-console","chatbot-body-container-console-container");
+					centerX("chatbot-body-container-console","chatbot-body-container-console-container");
+
+					centerY("chatbot-head","chatbot-head-author");
+					centerY("chatbot-head","chatbot-head-logo");
 				}
 
 				// 竖直居中
@@ -311,12 +318,18 @@
 				max-width: 61.8%;
 			}
 			
-			.chatbot-body-container-body-content-answer-datetime{
+			.chatbot-body-container-body-content-answer-bottom{
 				float: left;
 				margin: 5px 0 0 0;
 			}
 			
-			.chatbot-body-container-body-content-answer-good {
+			.chatbot-body-container-body-content-answer-datetime{
+			}
+			
+			.chatbot-body-container-body-content-answer-feedbacks{
+			}
+			
+			.chatbot-body-container-body-content-answer-feedbacks-good {
 				display: inline-block;
 				width: 15px;
 				height: 15px;
@@ -326,7 +339,7 @@
 				cursor: pointer;
 			}
 			
-			.chatbot-body-container-body-content-answer-bad {
+			.chatbot-body-container-body-content-answer-feedbacks-bad {
 				display: inline-block;
 				width: 15px;
 				height: 15px;
