@@ -1,6 +1,7 @@
 #!/bin/bash
 
 if [ $# -lt 2 ] ; then
+	echo "This script is used for updating OpenSSH, changing SSH port and disabling root access through SSH."
 	echo "Usage: $0 [port] [file path]."
 	exit 0
 fi
@@ -12,9 +13,20 @@ cp -f $2 $2.bak
 
 echo "" >> $2
 echo "#$0" >> $2
-#Change ssh port number
+
+#########################
+# Update OpenSSH Server #
+#########################
+yum -y install openssh-server
+
+###################
+# Change SSH Port #
+###################
 echo "Port $1" >> $2
-#Disable ssh for root user 
+
+###################################
+# Disable Root Access through SSH #
+################################### 
 echo "PermitRootLogin no" >> $2
 echo "$0: $2 is modified."
 
@@ -25,6 +37,7 @@ echo "$0: \"policycoreutils-python\" is installed."
 semanage port -a -t ssh_port_t -p tcp $1
 echo "$0: semanage port -l | grep ssh"
 semanage port -l | grep ssh
+
 echo "$0: systemctl restart sshd.service"
 systemctl restart sshd.service
 echo "$0: systemctl status sshd.service"
