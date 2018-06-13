@@ -11,8 +11,8 @@ echo "$0: [file path] is $1."
 ##########
 # Backup #
 ##########
-echo "$0: cp -f $1 $1.bak"
-cp -f $1 $1.bak
+echo "$0: cp -f $1 $1.bak_\`date +\"%Y-%m-%d_%H:%M:%S\"\`"
+cp -f $1 $1.bak_`date +"%Y-%m-%d_%H:%M:%S"`
 
 echo "" >> $1
 echo "#$0" >> $1

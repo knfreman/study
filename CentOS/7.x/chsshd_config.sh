@@ -17,8 +17,8 @@ yum -y install openssh-server
 ##########
 # Backup #
 ##########
-echo "$0: cp -f $2 $2.bak"
-cp -f $2 $2.bak
+echo "$0: cp -f $2 $2.bak_\`date +\"%Y-%m-%d_%H:%M:%S\"\`"
+cp -f $2 $2.bak_`date +"%Y-%m-%d_%H:%M:%S"`
 
 echo "" >> $2
 echo "#$0" >> $2
