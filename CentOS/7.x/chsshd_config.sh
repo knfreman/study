@@ -8,16 +8,20 @@ fi
 
 echo "$0: [port] is $1 and [file path] is $2."
 
+#########################
+# Update OpenSSH Server #
+#########################
+echo "$0: yum -y install openssh-server"
+yum -y install openssh-server
+
+##########
+# Backup #
+##########
 echo "$0: cp -f $2 $2.bak"
 cp -f $2 $2.bak
 
 echo "" >> $2
 echo "#$0" >> $2
-
-#########################
-# Update OpenSSH Server #
-#########################
-yum -y install openssh-server
 
 ###################
 # Change SSH Port #
