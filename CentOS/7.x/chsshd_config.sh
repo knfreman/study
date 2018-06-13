@@ -31,6 +31,8 @@ echo "Port $1" >> $2
 ###################################
 # Disable Root Access through SSH #
 ################################### 
+echo "$0: sed -i \"s/PermitRootLogin yes/#PermitRootLogin yes/g\" $2"
+sed -i "s/PermitRootLogin yes/#PermitRootLogin yes/g" $2
 echo "PermitRootLogin no" >> $2
 echo "$0: $2 is modified."
 
