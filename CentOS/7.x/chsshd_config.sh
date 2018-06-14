@@ -2,7 +2,7 @@
 
 if [ $# -lt 2 ] ; then
 	echo "This script is used for updating OpenSSH, changing SSH port and disabling root access through SSH."
-	echo "Usage: $0 [port] [file path]."
+	echo "Usage: $0 [port] [file path], e.g., $0 33333 /etc/ssh/sshd_config."
 	exit 0
 fi
 

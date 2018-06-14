@@ -2,7 +2,7 @@
 
 if [ $# -lt 1 ] ; then
 	echo "This script is used for configuring automatic updates. Please make sure yum-cron is installed and enabled."
-	echo "Usage: $0 [file path]."
+	echo "Usage: $0 [file path], e.g., $0 /etc/yum/yum-cron.conf."
 	exit 0
 fi
 
