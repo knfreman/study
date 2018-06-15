@@ -27,8 +27,6 @@ do
     esac  
 done  
 
-echo "[hostname] is $hostname"
-
 if [ ! $hostname ] ; then
 	echo "[hostname] is unspecified!"
 	exit 0
