@@ -2,8 +2,13 @@
 
 if [ $# -eq 0 ] ; then
 	echo "This script is used for generating ssh key and upload it to the server."
+	echo ""
 	echo "Usage: sh $0 -f [filename] -p [port] -u [username] -h [hostname or IP Address]." 
 	echo "e.g., sh $0 -f id_rsa -p 33333 -u Patrick -h 123.123.123.123"
+	echo ""
+	echo "If [port] is unspecified, 22 will be used."
+	echo "If [username] is unspecified, current username will be used."
+	echo "If [filename] is unpsecified, [username]@[hostname] will be used."
 	exit 0
 fi
 
@@ -37,7 +42,7 @@ if [ ! $username ] ; then
 fi
 
 if [ ! $filename ] ; then
-	filename=$hostname
+	filename="$username@$hostname"
 fi
 
 if [ ! $port ] ; then
