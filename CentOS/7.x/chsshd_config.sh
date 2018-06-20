@@ -2,12 +2,34 @@
 
 if [ $# -lt 2 ] ; then
 	echo "This script is used for updating OpenSSH, changing SSH port and disabling root access through SSH."
-	echo "Usage: sh $0 [port] [file path]."
-	echo "e.g., sh $0 33333 /etc/ssh/sshd_config."
+	echo ""
+	echo "Usage: sh $0 -p [port] -f [file path]."
+	echo "e.g., sh $0 -p 33333 -f /etc/ssh/sshd_config"
+	echo ""
+	echo "If [file path] is unpsecified, '/etc/ssh/sshd_config' will be used."
 	exit 0
 fi
 
-echo "$0: [port] is $1 and [file path] is $2."
+while getopts "f:p:" opt  
+do  
+    case $opt in  
+        f)  
+        filepath=$OPTARG
+        ;;  
+        p)  
+        port=$OPTARG
+        ;;   
+        ?)   
+        ;;  
+    esac  
+done
+
+if [ ! $filepath ] ; then
+	filepath="/etc/ssh/sshd_config"
+fi
+
+echo "$0: filepath=$filepath"
+echo "$0: port=$port"
 
 #########################
 # Update OpenSSH Server #
@@ -18,24 +40,24 @@ yum -y install openssh-server
 ##########
 # Backup #
 ##########
-echo "$0: cp -f $2 $2.bak_\`date +\"%Y-%m-%d_%H:%M:%S\"\`"
-cp -f $2 $2.bak_`date +"%Y-%m-%d_%H:%M:%S"`
+echo "$0: cp -f $filepath $filepath.bak_\`date +\"%Y-%m-%d_%H:%M:%S\"\`"
+cp -f $filepath $filepath.bak_`date +"%Y-%m-%d_%H:%M:%S"`
 
-echo "" >> $2
-echo "#$0" >> $2
+echo "" >> $filepath
+echo "#$0" >> $filepath
 
 ###################
 # Change SSH Port #
 ###################
-echo "Port $1" >> $2
+echo "Port $port" >> $filepath
 
 ###################################
 # Disable Root Access through SSH #
 ################################### 
-echo "$0: sed -i \"s/PermitRootLogin yes/#PermitRootLogin yes/g\" $2"
-sed -i "s/PermitRootLogin yes/#PermitRootLogin yes/g" $2
-echo "PermitRootLogin no" >> $2
-echo "$0: $2 is modified."
+echo "$0: sed -i \"s/PermitRootLogin yes/#PermitRootLogin yes/g\" $filepath"
+sed -i "s/PermitRootLogin yes/#PermitRootLogin yes/g" $filepath
+echo "PermitRootLogin no" >> $filepath
+echo "$0: $filepath is modified."
 
 ###########
 # SELinux #
@@ -56,7 +78,8 @@ if isSELinuxEnabled ; then
 	echo "$0: yum -y install policycoreutils-python"
 	yum -y install policycoreutils-python
 	echo "$0: \"policycoreutils-python\" is installed."
-	semanage port -a -t ssh_port_t -p tcp $1
+	echo "$0: semanage port -a -t ssh_port_t -p tcp $port"
+	semanage port -a -t ssh_port_t -p tcp $port
 	echo "$0: semanage port -l | grep ssh"
 	semanage port -l | grep ssh
 else
@@ -78,8 +101,8 @@ isFirewallActive(){
 
 if isFirewallActive ; then
 	echo "$0: firewall is active"
-	echo "$0: firewall-cmd --zone=public --add-port=$1/tcp --permanent"
-	firewall-cmd --zone=public --add-port=$1/tcp --permanent
+	echo "$0: firewall-cmd --zone=public --add-port=$port/tcp --permanent"
+	firewall-cmd --zone=public --add-port=$port/tcp --permanent
 	echo "$0: systemctl restart firewalld"
 	systemctl restart firewalld
 	echo "$0: firewall-cmd --list-ports"
