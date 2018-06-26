@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -lt 2 ] ; then
-	echo "This script is used for updating OpenSSH, changing SSH port and disabling root access through SSH."
+	echo "This script is used for updating OpenSSH, changing SSH port and disabling root access through SSH. Please run this script as root."
 	echo ""
 	echo "Usage: sh $0 -p [port] -f [file path]."
 	echo "e.g., sh $0 -p 33333 -f /etc/ssh/sshd_config"
