@@ -37,7 +37,7 @@ public class Identification {
 			request.setHeader("Content-Type", "application/octet-stream");
 			request.setHeader("Ocp-Apim-Subscription-Key", Authentication.SUBSCRIPTION_KEY);
 
-			request.setEntity(new InputStreamEntity(new FileInputStream("audio/Anonymous_1.wav")));
+			request.setEntity(new InputStreamEntity(new FileInputStream("audio/Anonymous_2.wav")));
 
 			HttpResponse response = httpclient.execute(request);
 			System.out.println(response.getStatusLine().getStatusCode());

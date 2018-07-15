@@ -22,7 +22,7 @@ public class CreateEnrollment {
 
 	public static void main(String[] args) {
 		HttpClient httpclient = HttpClients.createDefault();
-		String identificationProfileId = Authentication.IdentificationProfile.Lazy.getProfileId();
+		String identificationProfileId = Authentication.IdentificationProfile.Mavis.getProfileId();
 
 		try {
 			URIBuilder builder = new URIBuilder(
@@ -34,7 +34,7 @@ public class CreateEnrollment {
 			request.setHeader("Content-Type", "application/octet-stream");
 			request.setHeader("Ocp-Apim-Subscription-Key", Authentication.SUBSCRIPTION_KEY);
 
-			request.setEntity(new InputStreamEntity(new FileInputStream("audio/Lazy_9.wav")));
+			request.setEntity(new InputStreamEntity(new FileInputStream("audio/Mavis_9.wav")));
 
 			HttpResponse response = httpclient.execute(request);
 			System.out.println(response.getStatusLine().getStatusCode());

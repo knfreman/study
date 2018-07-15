@@ -11,7 +11,7 @@ public class Authentication {
 
 	public enum IdentificationProfile {
 
-		Patrick("***********************"), Lazy("***********************");
+		Patrick("***********************"), Lazy("***********************"), Mavis("***********************");
 
 		private String profileId;
 
