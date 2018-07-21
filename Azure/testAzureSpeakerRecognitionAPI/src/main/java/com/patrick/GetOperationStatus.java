@@ -19,7 +19,7 @@ public class GetOperationStatus {
 
 	public static void main(String[] args) {
 		HttpClient httpclient = HttpClients.createDefault();
-		String operationId = "8983585f-5aa6-4217-86c7-606d90bb7c3c";
+		String operationId = "ff78c99e-a63b-4cac-bdf0-57eec1f78c9e";
 
 		try {
 			URIBuilder builder = new URIBuilder(

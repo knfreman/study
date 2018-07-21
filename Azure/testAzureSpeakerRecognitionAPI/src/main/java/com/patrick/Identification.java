@@ -21,23 +21,21 @@ import org.apache.http.util.EntityUtils;
 public class Identification {
 
 	public static void main(String[] args) {
-		// System.out.println(buildIdentificationProfileIds());
-
 		HttpClient httpclient = HttpClients.createDefault();
 		String identificationProfileIds = buildIdentificationProfileIds();
 		System.out.println("identificationProfileIds: " + identificationProfileIds);
 
 		try {
-			URIBuilder builder = new URIBuilder(
-					"https://westus.api.cognitive.microsoft.com/spid/v1.0/identify?identificationProfileIds="
-							+ identificationProfileIds);
+			URIBuilder builder = new URIBuilder(new StringBuilder(
+					"https://westus.api.cognitive.microsoft.com/spid/v1.0/identify?identificationProfileIds=")
+							.append(identificationProfileIds).append("&shortAudio=").append(true).toString());
 
 			URI uri = builder.build();
 			HttpPost request = new HttpPost(uri);
 			request.setHeader("Content-Type", "application/octet-stream");
 			request.setHeader("Ocp-Apim-Subscription-Key", Authentication.SUBSCRIPTION_KEY);
 
-			request.setEntity(new InputStreamEntity(new FileInputStream("audio/Anonymous_2.wav")));
+			request.setEntity(new InputStreamEntity(new FileInputStream("audio/Anonymous_4.wav")));
 
 			HttpResponse response = httpclient.execute(request);
 			System.out.println(response.getStatusLine().getStatusCode());
