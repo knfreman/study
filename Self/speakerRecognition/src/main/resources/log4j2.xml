@@ -1,0 +1,18 @@
+<Configuration status="INFO" monitorInterval="300">
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+		</Console>
+		<File name="SpeakerRecognitionFile" fileName="D:/apache-tomcat-9.0.6/logs/speakerRecognition.log">
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+		</File>
+	</Appenders>
+	<Loggers>
+		<Logger name="SpeakerRecognitionlogger" level="info" additivity="true">
+			<AppenderRef ref="SpeakerRecognitionFile" />
+		</Logger>
+		<Root level="error">
+			<AppenderRef ref="Console" />
+		</Root>
+	</Loggers>
+</Configuration>

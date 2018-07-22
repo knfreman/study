@@ -1,0 +1,175 @@
+<html>
+	<head>
+		<script src="./js/jquery-3.3.1.min.js"></script>
+		<script src="https://cdn.WebRTC-Experiment.com/RecordRTC.js"></script>
+		<script>
+			$(document).ready(()=>{
+				console.log("Page is ready.")
+			
+				var flag
+				
+				navigator.mediaDevices.getUserMedia ({
+					audio:true
+				}).then(function(stream) {
+					var audioCtx = new (window.AudioContext || window.webkitAudioContext)(); // define audio context
+					var analyser = audioCtx.createAnalyser();         // data visualization
+					var source = audioCtx.createMediaStreamSource(stream);
+					source.connect(analyser);
+
+					visualize()
+					
+					var recorder
+					
+					function visualize() {
+						var canvas=document.querySelector('.visualizer')
+						var canvasCtx=canvas.getContext('2d')
+						var WIDTH = canvas.width;
+						var HEIGHT = canvas.height;
+
+						analyser.fftSize = 2048;
+						var bufferLength = analyser.frequencyBinCount; // half the FFT value
+						var dataArray = new Uint8Array(bufferLength); // create an array to store the data
+
+						canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+
+						function draw() {
+
+							drawVisual = requestAnimationFrame(draw);
+							
+							if(!flag){
+								canvasCtx.clearRect(0, 0, WIDTH, HEIGHT)
+								
+								if(recorder){
+									console.log("stop to record audio")
+									recorder.stop(function(blob){
+										$("#loading").css("display","block");
+										
+										// It seems that jQuey can't support BLOB.
+										// See https://bugs.jquery.com/ticket/11461#no1
+										// See https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Sending_and_Receiving_Binary_Data
+										var oReq = new XMLHttpRequest();
+										oReq.open("POST", "identification", true)			
+										oReq.onload = function (oEvent) {
+											var resp=this.response
+											console.log(resp)
+											$("#loading").css("display","none")
+											$("#response").text(JSON.parse(resp).msg).css("display","block")
+										}
+										oReq.onerror = function () {
+											console.log("Error occurs.")
+										}
+
+										oReq.send(blob);
+									})
+									
+									recorder = null
+								}
+								
+								return
+							}
+							
+							if(!recorder){
+								console.log("start to record audio")
+								// See https://recordrtc.org/StereoAudioRecorder.html
+								recorder = new StereoAudioRecorder(stream, {
+									sampleRate: 44100,
+									bufferSize: 4096
+								})
+								
+								recorder.record()
+							}
+
+							analyser.getByteTimeDomainData(dataArray); // get waveform data and put it into the array created above
+
+							canvasCtx.fillStyle = 'rgb(200, 200, 200)'; // draw wave with canvas
+							canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+
+							canvasCtx.lineWidth = 2;
+							canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+
+							canvasCtx.beginPath();
+
+							var sliceWidth = WIDTH * 1.0 / bufferLength;
+							var x = 0;
+
+							for(var i = 0; i < bufferLength; i++) {
+
+								var v = dataArray[i] / 128.0;
+								var y = v * HEIGHT/2;
+
+								if(i === 0) {
+									canvasCtx.moveTo(x, y);
+								} else {
+									canvasCtx.lineTo(x, y);
+								}
+
+								x += sliceWidth;
+							}
+
+							canvasCtx.lineTo(canvas.width, canvas.height/2);
+							canvasCtx.stroke();
+						};
+
+						draw();
+					}
+  				}).catch(function(err){
+    				console.log('The following gUM error occured: ' + err)
+				})
+				
+				$("#start").on('mousedown',function(){
+					flag=true
+					$("#response").css("display","none")
+				}).on('mouseup',function(){
+					flag=false
+				})
+			})
+		</script>
+
+		<style>
+			#loading{
+				display:none;
+				position:fixed;
+				width:100%;
+				height:100%;
+				
+				background-color:#ffffff;
+				
+				opacity: 0.5;
+			}
+			
+			#image{
+				position:absolute;
+				
+				top:0;
+				bottom:0;
+				left:0;
+				right:0;
+				
+				margin:auto;
+				
+				width:160px;
+				height:20px;
+				
+				background-image:url(images/loading.gif);
+			}
+		
+			canvas{
+				border: 1px solid black;
+			}
+			
+			#response{
+				display:none;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="loading">
+			<div id="image"></div>
+		</div>
+		<div>
+			<canvas class='visualizer' width="800" height="100"></canvas>
+		</div>
+		<button id="start">Press and Speak</button>
+		<p id="response"></p>
+	</body>
+</html>
