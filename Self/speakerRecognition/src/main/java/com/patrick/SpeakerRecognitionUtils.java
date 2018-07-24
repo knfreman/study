@@ -94,8 +94,6 @@ public class SpeakerRecognitionUtils {
 		}
 
 		int statusCode = response.getStatusLine().getStatusCode();
-		LOGGER.info("Http Status Code is: " + statusCode);
-
 		if (statusCode != 202) {
 			LOGGER.info(getResponseEntity(response.getEntity()));
 			return "";
@@ -163,8 +161,7 @@ public class SpeakerRecognitionUtils {
 		} while (operationStatus.has("status") && ("notstarted".equalsIgnoreCase(operationStatus.getString("status"))
 				|| "running".equalsIgnoreCase(operationStatus.getString("status"))));
 
-		LOGGER.info("Operation Status is: " + operationStatus);
-
+		LOGGER.debug("Operation Status is: " + operationStatus);
 		return operationStatus;
 	}
 

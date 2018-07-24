@@ -29,22 +29,22 @@ public class FFmpegUtils {
 		}
 	}
 
-	public static synchronized boolean transcode(String filename) {
+	public static synchronized String transcode(String filename) {
 		if (DEST.isEmpty()) {
-			return false;
+			return "";
 		}
 
 		String filePath = new StringBuilder(DEST).append(File.separatorChar).append(filename).toString();
 		String cmd = String.format(CMD_FORMAT, filePath, filePath);
 
-		LOGGER.info(cmd);
+		LOGGER.debug(cmd);
 
 		try {
 			Runtime.getRuntime().exec(new String[] { arg0, arg1, cmd }).waitFor();
-			return true;
+			return filePath + ".wav";
 		} catch (Exception e) {
-			LOGGER.error("", e);
-			return false;
+			LOGGER.error("Exception occurs during using ffmpeg to transcode.", e);
+			return "";
 		}
 	}
 

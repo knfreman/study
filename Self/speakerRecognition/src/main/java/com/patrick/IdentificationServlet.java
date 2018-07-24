@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 /**
@@ -24,6 +26,7 @@ import org.json.JSONObject;
 public class IdentificationServlet extends HttpServlet {
 
 	private static final String DEST = Config.getInstance().getDest();
+	private static final Logger LOGGER = LogManager.getLogger("SpeakerRecognitionlogger");
 
 	/**
 	 * 
@@ -50,12 +53,20 @@ public class IdentificationServlet extends HttpServlet {
 			}
 		}
 
-		if (!FFmpegUtils.transcode(filename)) {
+		LOGGER.info("Receive a new request.");
+		LOGGER.debug("The audio file is saved to '" + filePath + "'.");
+		LOGGER.info("Use FFmpeg to transcode.");
+		
+		String wavFilePath = FFmpegUtils.transcode(filename);
+
+		if (wavFilePath.isEmpty()) {
 			printResponse(resp, "Internal Server Error");
 			return;
 		}
 
-		String wavFilePath = new StringBuilder(filePath).append(".wav").toString();
+		LOGGER.debug(
+				"The audio file '" + filePath + "' is transcoded to wav and new audio file is '" + wavFilePath + "'.");
+		LOGGER.info("Invoke Microsoft Cognitive Services Speaker Recognition API to identify.");
 
 		JSONObject json = SpeakerRecognitionUtils.getIdentification(wavFilePath);
 		if (!json.has("status") || (!"succeeded".equalsIgnoreCase(json.getString("status")))) {

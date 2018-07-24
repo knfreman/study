@@ -7,11 +7,14 @@ package com.patrick;
  */
 public class Authentication {
 
-	public static final String SUBSCRIPTION_KEY = "***********************";
+	public static final String SUBSCRIPTION_KEY = "*******************";
 
 	public enum IdentificationProfile {
 
-		Patrick("***********************"), Lazy("***********************"), Mavis("***********************");
+		Patrick("*******************"), 
+		Caesar("*******************"), 
+		Tom("*******************"),
+		Georgio("*******************");
 
 		private String profileId;
 

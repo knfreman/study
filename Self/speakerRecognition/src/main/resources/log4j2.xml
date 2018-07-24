@@ -1,4 +1,4 @@
-<Configuration status="INFO" monitorInterval="300">
+<Configuration status="DEBUG" monitorInterval="300">
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
 			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
@@ -8,10 +8,10 @@
 		</File>
 	</Appenders>
 	<Loggers>
-		<Logger name="SpeakerRecognitionlogger" level="info" additivity="true">
+		<Logger name="SpeakerRecognitionlogger" level="DEBUG" additivity="true">
 			<AppenderRef ref="SpeakerRecognitionFile" />
 		</Logger>
-		<Root level="error">
+		<Root level="DEBUG">
 			<AppenderRef ref="Console" />
 		</Root>
 	</Loggers>
