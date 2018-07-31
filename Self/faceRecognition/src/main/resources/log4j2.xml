@@ -1,0 +1,18 @@
+<Configuration status="DEBUG" monitorInterval="300">
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+		</Console>
+		<File name="FaceRecognitionFile" fileName="D:/apache-tomcat-9.0.6/logs/faceRecognition.log">
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+		</File>
+	</Appenders>
+	<Loggers>
+		<Logger name="FaceRecognitionlogger" level="DEBUG" additivity="true">
+			<AppenderRef ref="FaceRecognitionFile" />
+		</Logger>
+		<Root level="DEBUG">
+			<AppenderRef ref="Console" />
+		</Root>
+	</Loggers>
+</Configuration>
