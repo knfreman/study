@@ -5,3 +5,5 @@
   - Run Train.java to train person group with specific group id
   - Run Detect.java to detect faces with specific image url
   - Run Identify.java with specific face id
+  
+More details can be seen [here](https://blog.csdn.net/itachiuchiha/article/details/81265329).
