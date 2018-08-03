@@ -1,12 +1,8 @@
 package com.patrick;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.util.Date;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -25,9 +21,6 @@ import org.json.JSONObject;
 @WebServlet("/upload")
 public class UploadImageServlet extends HttpServlet {
 
-	private static final String DEST = Config.getInstance().getDest();
-	private static final String IMAGE_URI_PREFIX = Config.getInstance().getImageUriPrefix();
-
 	private static final Logger LOGGER = LogManager.getLogger("FaceRecognitionlogger");
 
 	private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
@@ -40,29 +33,18 @@ public class UploadImageServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		LOGGER.info("Receive a new request.");
-		if (DEST.isEmpty()) {
-			LOGGER.error("Please check 'config.properties' because 'dest' is empty.");
-			printResponse(resp, INTERNAL_SERVER_ERROR);
-			return;
+
+		JSONObject json = null;
+
+		try (InputStream inputStream = req.getInputStream()) {
+			json = FaceRecognitionUtils.getPersonName(inputStream);
 		}
 
-		String filename = (new Date()).getTime() + ".png";
-		String filePath = new StringBuilder(DEST).append(File.separatorChar).append(filename).toString();
-
-		try (InputStream inputStream = req.getInputStream();
-				OutputStream outputStream = new FileOutputStream(filePath)) {
-			byte[] bytes = new byte[2048];
-			int hasRead = 0;
-			while ((hasRead = (inputStream.read(bytes))) > 0) {
-				outputStream.write(bytes, 0, hasRead);
-			}
+		if (json == null) {
+			LOGGER.warn("JSONObject is null.");
+			json = new JSONObject();
+			json.put("msg", INTERNAL_SERVER_ERROR);
 		}
-
-		LOGGER.debug("The image is saved to '" + filePath + "'.");
-
-		String imageURI = new StringBuilder(IMAGE_URI_PREFIX).append(File.separatorChar).append(filename).toString();
-		LOGGER.debug("imageURI is " + imageURI);
-		JSONObject json = FaceRecognitionUtils.getPersonName(imageURI);
 
 		if (json.getBoolean("isSuccess")) {
 			printResponse(resp, "Hello, I think you are " + json.getString("msg") + ", right?");

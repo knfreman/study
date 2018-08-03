@@ -1,16 +1,15 @@
 # Prerequisite
   - Microsoft Face Recognition API
   - Camera
-  - Public IP
-  - Tomcat with https
+  - Tomcat
 
 # Steps
   - Change Authentication.java
-  - Change config.properties and log4j2.xml
+  - Change log4j2.xml
   - Build and deploy to tomcat
 
 # Demo
-  - Start up Tomcat and visit https://[hostname]/faceRecognition/
+  - Start up Tomcat and visit https://localhost:8080/faceRecognition/
 ![images/1.jpg](images/1.jpg)
   - Look at the camera and click "Take photo"
 ![images/2.jpg](images/2.jpg)

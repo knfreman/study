@@ -1,6 +1,9 @@
 package com.patrick;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -11,6 +14,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -60,11 +64,11 @@ public class FaceRecognitionUtils {
 		}
 	}
 
-	private static StringEntity buildEntity(String content) {
+	private static StringEntity buildStringEntity(String content) {
 		try {
 			return new StringEntity(content);
-		} catch (Exception e) {
-			LOGGER.error("Exception occurs in FaceRecognitionUtils#buildEntity.", e);
+		} catch (UnsupportedEncodingException e) {
+			LOGGER.error("Exception occurs in FaceRecognitionUtils#buildStringEntity.", e);
 			return null;
 		}
 	}
@@ -81,31 +85,23 @@ public class FaceRecognitionUtils {
 		return "";
 	}
 
-	private static HttpPost buildPostRequest(URI uri, StringEntity reqEntity) {
+	private static HttpPost buildPostRequest(URI uri, String contentType, HttpEntity reqEntity) {
 		HttpPost request = new HttpPost(uri);
-		request.setHeader("Content-Type", "application/json");
+		request.setHeader("Content-Type", contentType);
 		request.setHeader("Ocp-Apim-Subscription-Key", Authentication.SUBSCRIPTION_KEY);
 		request.setEntity(reqEntity);
 
 		return request;
 	}
 
-	private static Response getFaceId(String imageURI) {
+	private static Response getFaceId(InputStream image) {
 		URI uri = buildURI(DETECT_URL);
 
 		if (uri == null) {
 			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
 		}
 
-		JSONObject json = new JSONObject();
-		json.put("url", imageURI);
-		StringEntity reqEntity = buildEntity(json.toString());
-
-		if (reqEntity == null) {
-			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
-		}
-
-		HttpPost request = buildPostRequest(uri, reqEntity);
+		HttpPost request = buildPostRequest(uri, "application/octet-stream", new InputStreamEntity(image));
 
 		HttpResponse response = sendRequest(request);
 
@@ -127,7 +123,7 @@ public class FaceRecognitionUtils {
 			LOGGER.warn("Cannot detect any faces.");
 			return Response.buildFailureResponse("Cannot detect any faces.");
 		}
-		
+
 		if (jsonArray.length() > 1) {
 			LOGGER.warn("At least two faces are detected.");
 			return Response.buildFailureResponse("At least two faces are detected.");
@@ -152,13 +148,13 @@ public class FaceRecognitionUtils {
 		json.put("personGroupId", personGroup.getPersonGroupId());
 		json.put("maxNumOfCandidatesReturned", 1);
 
-		StringEntity reqEntity = buildEntity(json.toString());
+		StringEntity reqEntity = buildStringEntity(json.toString());
 
 		if (reqEntity == null) {
 			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
 		}
 
-		HttpPost request = buildPostRequest(uri, reqEntity);
+		HttpPost request = buildPostRequest(uri, "application/json", reqEntity);
 
 		HttpResponse response = sendRequest(request);
 
@@ -186,8 +182,8 @@ public class FaceRecognitionUtils {
 		return Response.buildSuccessResponse(personId);
 	}
 
-	public static JSONObject getPersonName(String imageURI) {
-		Response resp = getFaceId(imageURI);
+	public static JSONObject getPersonName(InputStream image) {
+		Response resp = getFaceId(image);
 		if (!resp.isSuccess()) {
 			return buildResponse(false, resp.getMsg());
 		}
@@ -261,5 +257,9 @@ public class FaceRecognitionUtils {
 		private String getMsg() {
 			return msg;
 		}
+	}
+
+	public static void main(String[] args) throws IOException {
+		System.out.println(getPersonName(new FileInputStream("C:\\Users\\Patrick\\Desktop\\images\\1.png")));
 	}
 }
