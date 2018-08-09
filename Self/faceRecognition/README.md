@@ -1,7 +1,11 @@
-# Prerequisite
+# Prerequisites
   - Microsoft Face Recognition API
   - Camera
   - Tomcat
+  - Use Chrome and change its autoplay-policy
+![images/4.jpg](images/4.jpg)
+![images/5.jpg](images/5.jpg)
+![images/6.jpg](images/6.jpg)
 
 # Steps
   - Change Authentication.java
