@@ -1,6 +1,5 @@
 package com.patrick;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -257,9 +256,5 @@ public class FaceRecognitionUtils {
 		private String getMsg() {
 			return msg;
 		}
-	}
-
-	public static void main(String[] args) throws IOException {
-		System.out.println(getPersonName(new FileInputStream("C:\\Users\\Patrick\\Desktop\\images\\1.png")));
 	}
 }
