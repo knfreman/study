@@ -2,17 +2,17 @@ package com.patrick;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
@@ -20,6 +20,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.patrick.Authentication.PersonGroup;
@@ -40,145 +41,37 @@ public class FaceRecognitionUtils {
 
 	private static final PersonGroup personGroup = PersonGroup.Colleague;
 
-	private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
+	public static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
 
-	private static URI buildURI(String url) {
-		URI uri = null;
+	private static class Response {
+		private String msg;
+		private boolean success;
 
-		try {
-			uri = new URIBuilder(url).build();
-		} catch (URISyntaxException e) {
-			LOGGER.error("Exception occurs during building URI.", e);
+		private static Response buildResponse(String msg) {
+			Response resp = new Response();
+			resp.msg = msg;
+			return resp;
 		}
 
-		return uri;
-	}
-
-	private static HttpResponse sendRequest(HttpUriRequest request) {
-		try {
-			return HTTP_CLIENT.execute(request);
-		} catch (IOException e) {
-			LOGGER.error("Exception occurs during sending http request.", e);
-			return null;
-		}
-	}
-
-	private static StringEntity buildStringEntity(String content) {
-		try {
-			return new StringEntity(content);
-		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("Exception occurs in FaceRecognitionUtils#buildStringEntity.", e);
-			return null;
-		}
-	}
-
-	private static String getResponseEntity(HttpEntity entity) {
-		if (entity != null) {
-			try {
-				return EntityUtils.toString(entity);
-			} catch (IOException | ParseException e) {
-				LOGGER.error("Exception occurs during parsing http response.", e);
-			}
+		private static Response buildSuccessResponse(String msg) {
+			Response resp = buildResponse(msg);
+			resp.success = true;
+			return resp;
 		}
 
-		return "";
-	}
-
-	private static HttpPost buildPostRequest(URI uri, String contentType, HttpEntity reqEntity) {
-		HttpPost request = new HttpPost(uri);
-		request.setHeader("Content-Type", contentType);
-		request.setHeader("Ocp-Apim-Subscription-Key", Authentication.SUBSCRIPTION_KEY);
-		request.setEntity(reqEntity);
-
-		return request;
-	}
-
-	private static Response getFaceId(InputStream image) {
-		URI uri = buildURI(DETECT_URL);
-
-		if (uri == null) {
-			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
+		private static Response buildFailureResponse(String msg) {
+			Response resp = buildResponse(msg);
+			resp.success = false;
+			return resp;
 		}
 
-		HttpPost request = buildPostRequest(uri, "application/octet-stream", new InputStreamEntity(image));
-
-		HttpResponse response = sendRequest(request);
-
-		if (response == null) {
-			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
+		private boolean isSuccess() {
+			return success;
 		}
 
-		String responseEntity = getResponseEntity(response.getEntity());
-
-		int statusCode = response.getStatusLine().getStatusCode();
-		if (statusCode != 200) {
-			LOGGER.warn("Status code is not 200.");
-			LOGGER.debug("Response entity is " + responseEntity);
-			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
+		private String getMsg() {
+			return msg;
 		}
-
-		JSONArray jsonArray = new JSONArray(responseEntity);
-		if (jsonArray.length() == 0) {
-			LOGGER.warn("Cannot detect any faces.");
-			return Response.buildFailureResponse("Cannot detect any faces.");
-		}
-
-		if (jsonArray.length() > 1) {
-			LOGGER.warn("At least two faces are detected.");
-			return Response.buildFailureResponse("At least two faces are detected.");
-		}
-
-		String faceId = jsonArray.getJSONObject(0).getString("faceId");
-		return Response.buildSuccessResponse(faceId);
-	}
-
-	private static Response identify(String faceId) {
-		URI uri = buildURI(IDENTIFY_URL);
-
-		if (uri == null) {
-			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
-		}
-
-		JSONArray faceIds = new JSONArray();
-		faceIds.put(faceId);
-
-		JSONObject json = new JSONObject();
-		json.put("faceIds", faceIds);
-		json.put("personGroupId", personGroup.getPersonGroupId());
-		json.put("maxNumOfCandidatesReturned", 1);
-
-		StringEntity reqEntity = buildStringEntity(json.toString());
-
-		if (reqEntity == null) {
-			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
-		}
-
-		HttpPost request = buildPostRequest(uri, "application/json", reqEntity);
-
-		HttpResponse response = sendRequest(request);
-
-		if (response == null) {
-			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
-		}
-
-		String responseEntity = getResponseEntity(response.getEntity());
-		int statusCode = response.getStatusLine().getStatusCode();
-		if (statusCode != 200) {
-			LOGGER.warn("Status code is not 200.");
-			LOGGER.debug("Response entity is " + responseEntity);
-			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
-		}
-
-		JSONArray jsonArray = new JSONArray(responseEntity);
-		JSONObject jsonObject = jsonArray.getJSONObject(0);
-		JSONArray candidates = jsonObject.getJSONArray("candidates");
-		if (candidates.length() == 0) {
-			return Response.buildFailureResponse(
-					"Sorry, I don't know who you are. Please ask Patrick to introduce you to me.");
-		}
-
-		String personId = candidates.getJSONObject(0).getString("personId");
-		return Response.buildSuccessResponse(personId);
 	}
 
 	public static JSONObject getPersonName(InputStream image) {
@@ -227,34 +120,128 @@ public class FaceRecognitionUtils {
 		return "";
 	}
 
-	private static class Response {
-		private String msg;
-		private boolean success;
+	private static String getResponseEntity(HttpEntity entity) throws ParseException, IOException {
+		String responseEntity = EntityUtils.toString(entity);
+		LOGGER.debug("Response entity is " + responseEntity);
+		return responseEntity;
+	}
 
-		private static Response buildResponse(String msg) {
-			Response resp = new Response();
-			resp.msg = msg;
-			return resp;
+	/* ============================== Face Detect ============================== */
+
+	private static Response invokeDetectAPI(InputStream image)
+			throws URISyntaxException, ClientProtocolException, IOException {
+		URI uri = new URIBuilder(DETECT_URL).build();
+
+		HttpPost request = buildPostRequest(uri, ContentType.APPLICATION_OCTET_STREAM.getMimeType(),
+				new InputStreamEntity(image));
+		HttpResponse response = HTTP_CLIENT.execute(request);
+
+		return parseDetectAPIResponse(response);
+	}
+
+	private static Response parseDetectAPIResponse(HttpResponse response)
+			throws ParseException, IOException, JSONException {
+		int statusCode = response.getStatusLine().getStatusCode();
+		String responseEntity = getResponseEntity(response.getEntity());
+
+		if (statusCode != 200) {
+			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
 		}
 
-		private static Response buildSuccessResponse(String msg) {
-			Response resp = buildResponse(msg);
-			resp.success = true;
-			return resp;
+		return parseDetectAPIResponse(responseEntity);
+	}
+
+	private static Response parseDetectAPIResponse(String responseEntity) throws JSONException {
+		JSONArray jsonArray = new JSONArray(responseEntity);
+		if (jsonArray.length() == 0) {
+			LOGGER.warn("Cannot detect any faces.");
+			return Response.buildFailureResponse("Cannot detect any faces.");
 		}
 
-		private static Response buildFailureResponse(String msg) {
-			Response resp = buildResponse(msg);
-			resp.success = false;
-			return resp;
+		if (jsonArray.length() > 1) {
+			LOGGER.warn("At least two faces are detected.");
+			return Response.buildFailureResponse("At least two faces are detected.");
 		}
 
-		private boolean isSuccess() {
-			return success;
+		String faceId = jsonArray.getJSONObject(0).getString("faceId");
+		return Response.buildSuccessResponse(faceId);
+	}
+
+	private static HttpPost buildPostRequest(URI uri, String contentType, HttpEntity reqEntity) {
+		HttpPost request = new HttpPost(uri);
+		request.setHeader("Content-Type", contentType);
+		request.setHeader("Ocp-Apim-Subscription-Key", Authentication.SUBSCRIPTION_KEY);
+		request.setEntity(reqEntity);
+
+		return request;
+	}
+
+	private static Response getFaceId(InputStream image) {
+		try {
+			return invokeDetectAPI(image);
+		} catch (URISyntaxException | IOException | JSONException e) {
+			LOGGER.error("Exception occurs during invoking Microsoft Cognitive Service - Face Detect .", e);
+			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/* ============================= Face Identify ============================= */
+
+	private static Response invokeIdentifyAPI(String faceId)
+			throws URISyntaxException, ClientProtocolException, IOException, JSONException {
+		URI uri = new URIBuilder(IDENTIFY_URL).build();
+		String reqContent = buildIdentifyRequestContent(faceId);
+
+		StringEntity reqEntity = new StringEntity(reqContent);
+		HttpPost request = buildPostRequest(uri, ContentType.APPLICATION_JSON.getMimeType(), reqEntity);
+		HttpResponse response = HTTP_CLIENT.execute(request);
+		return parseIdentifyAPIResponse(response);
+	}
+
+	private static String buildIdentifyRequestContent(String faceId) throws JSONException {
+		JSONArray faceIds = new JSONArray();
+		faceIds.put(faceId);
+
+		JSONObject json = new JSONObject();
+
+		json.put("faceIds", faceIds);
+		json.put("personGroupId", personGroup.getPersonGroupId());
+		json.put("maxNumOfCandidatesReturned", 1);
+
+		return json.toString();
+	}
+
+	private static Response parseIdentifyAPIResponse(HttpResponse response)
+			throws ParseException, IOException, JSONException {
+		int statusCode = response.getStatusLine().getStatusCode();
+		String responseEntity = getResponseEntity(response.getEntity());
+
+		if (statusCode != 200) {
+			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
 		}
 
-		private String getMsg() {
-			return msg;
+		return parseIdentifyAPIResponse(responseEntity);
+	}
+
+	private static Response parseIdentifyAPIResponse(String responseEntity) throws JSONException {
+		JSONArray jsonArray = new JSONArray(responseEntity);
+		JSONObject jsonObject = jsonArray.getJSONObject(0);
+		JSONArray candidates = jsonObject.getJSONArray("candidates");
+		if (candidates.length() == 0) {
+			return Response.buildFailureResponse(
+					"Sorry, I don't know who you are. Please ask Patrick to introduce you to me.");
+		}
+
+		String personId = candidates.getJSONObject(0).getString("personId");
+		return Response.buildSuccessResponse(personId);
+	}
+
+	private static Response identify(String faceId) {
+		try {
+			return invokeIdentifyAPI(faceId);
+		} catch (URISyntaxException | IOException | JSONException e) {
+			LOGGER.error("Exception occurs during invoking Microsoft Cognitive Service - Face Identify .", e);
+			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
 		}
 	}
 }

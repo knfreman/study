@@ -117,15 +117,15 @@
 			var resp=this.response
 			console.log(resp)
 			loadingDiv.style.display="none"
-			
 			responseP.innerHTML=JSON.parse(resp).msg
 			responseP.style.display="block"
 		  }
 
 		  xhr.onerror = function () {
-			console.log("Error occurs.")
+			var resp=this.response
+			console.log(resp)
 			loadingDiv.style.display="none"
-			responseP.innerHTML="Internal Server Error"
+			responseP.innerHTML=JSON.parse(resp).msg
 			responseP.style.display="block"
 		  }
 

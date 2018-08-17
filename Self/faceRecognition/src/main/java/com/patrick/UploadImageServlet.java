@@ -23,8 +23,6 @@ public class UploadImageServlet extends HttpServlet {
 
 	private static final Logger LOGGER = LogManager.getLogger("FaceRecognitionlogger");
 
-	private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
-
 	/**
 	 * 
 	 */
@@ -34,6 +32,16 @@ public class UploadImageServlet extends HttpServlet {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		LOGGER.info("Receive a new request.");
 
+		try {
+			identifyByFace(req, resp);
+		} catch (IOException e) {
+			resp.setStatus(500);
+			printResponse(resp, FaceRecognitionUtils.INTERNAL_SERVER_ERROR);
+			LOGGER.error("Exception occurs in UploadImageServlet.identifyByFace", e);
+		}
+	}
+
+	private void identifyByFace(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		JSONObject json = null;
 
 		try (InputStream inputStream = req.getInputStream()) {
@@ -43,13 +51,21 @@ public class UploadImageServlet extends HttpServlet {
 		if (json == null) {
 			LOGGER.warn("JSONObject is null.");
 			json = new JSONObject();
-			json.put("msg", INTERNAL_SERVER_ERROR);
+			json.put("msg", FaceRecognitionUtils.INTERNAL_SERVER_ERROR);
+			resp.setStatus(500);
+			return;
 		}
 
 		if (json.getBoolean("isSuccess")) {
 			printResponse(resp, "Hello, I think you are " + json.getString("msg") + ", right?");
 		} else {
-			printResponse(resp, json.getString("msg"));
+			String msg = json.getString("msg");
+
+			if (msg.contentEquals(FaceRecognitionUtils.INTERNAL_SERVER_ERROR)) {
+				resp.setStatus(500);
+			}
+
+			printResponse(resp, msg);
 		}
 	}
 
