@@ -1,0 +1,28 @@
+<configuration>
+	<property name="LOG_HOME" value="/opt/apache-tomcat-8.5.32/logs" />
+	<!--<property name="LOG_HOME" value="D:\\apache-tomcat-8.5.32\\logs" />-->
+
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder 
+			by default -->
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+	<appender name="ssoFile" class="ch.qos.logback.core.FileAppender">
+		<file>${LOG_HOME}/sso.log</file>
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+
+	<root level="info">
+		<appender-ref ref="stdout" />
+	</root>
+	<logger name="ssoLogger" level="debug" additivity="false">
+		<appender-ref ref="ssoFile" />
+		<appender-ref ref="stdout" />
+	</logger>
+</configuration>
