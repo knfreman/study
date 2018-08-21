@@ -11,7 +11,7 @@ public class Authentication {
 
 	public enum PersonGroup {
 		
-		AIA("aia", 
+		COLLEAGUE("colleague", 
 				new Person[] { new Person("Patrick", "********************"),
 						new Person("Bella", "********************"),
 						new Person("Lesley", "********************"),

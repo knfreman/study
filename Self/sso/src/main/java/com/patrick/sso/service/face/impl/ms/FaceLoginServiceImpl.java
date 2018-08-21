@@ -150,7 +150,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		JSONObject json = new JSONObject();
 
 		json.put("faceIds", faceIds);
-		json.put("personGroupId", PersonGroup.AIA.getPersonGroupId());
+		json.put("personGroupId", PersonGroup.COLLEAGUE.getPersonGroupId());
 		json.put("maxNumOfCandidatesReturned", 1);
 
 		return json.toString();
