@@ -15,7 +15,7 @@ import com.patrick.sso.profileid.ITokenProfileIdMap;
 @Component
 public class SimpleTokenProfileIdMap implements ITokenProfileIdMap {
 
-	private ConcurrentMap<String, String> map = new ConcurrentHashMap<String, String>();
+	private ConcurrentMap<String, String> map = new ConcurrentHashMap<>();
 
 	@Override
 	public String get(String token) {

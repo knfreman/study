@@ -10,12 +10,15 @@ buildscript {
 	}
 }
 
-apply plugin: 'java'
+plugins {
+	id 'org.sonarqube' version '2.6.2'
+}
+
+apply plugin: 'war'
 apply plugin: 'jacoco'
 apply plugin: 'eclipse-wtp'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
-apply plugin: 'war'
 
 group = 'com.aia.ilab'
 version = '0.0.1-SNAPSHOT'

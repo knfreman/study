@@ -1,6 +1,5 @@
 package com.patrick.sso.service.profileid;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import org.json.JSONException;
@@ -29,7 +28,7 @@ public class ProfileIdService {
 	@Autowired
 	private ITokenProfileIdMap tokenProfileMap;
 
-	public ResponseWrapper getProfileId(InputStream inputStream) throws IOException {
+	public ResponseWrapper getProfileId(InputStream inputStream) {
 		String jsonString = CommonUtils.inputStreamToString(inputStream);
 		LOGGER.debug("JSON String is " + jsonString);
 

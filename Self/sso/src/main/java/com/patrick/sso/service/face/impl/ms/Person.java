@@ -7,8 +7,8 @@ package com.patrick.sso.service.face.impl.ms;
  */
 public class Person {
 
-	public String name;
-	public String id;
+	private String name;
+	private String id;
 
 	public Person(String name, String id) {
 		super();

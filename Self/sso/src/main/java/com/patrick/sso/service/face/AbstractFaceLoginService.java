@@ -19,10 +19,6 @@ public abstract class AbstractFaceLoginService implements IFaceLoginService {
 	protected MessageSource messageSource;
 
 	protected boolean isLangValid(String lang) {
-		if (StringUtils.isEmpty(lang)) {
-			return false;
-		}
-
-		return true;
+		return !StringUtils.isEmpty(lang);
 	}
 }

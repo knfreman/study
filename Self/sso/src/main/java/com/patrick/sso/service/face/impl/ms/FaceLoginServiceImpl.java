@@ -8,8 +8,6 @@ import java.util.UUID;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.ParseException;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
@@ -85,8 +83,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		}
 	}
 
-	private Response invokeDetectAPI(InputStream image)
-			throws URISyntaxException, ClientProtocolException, IOException {
+	private Response invokeDetectAPI(InputStream image) throws URISyntaxException, IOException {
 		URI uri = new URIBuilder(DETECT_URL).build();
 
 		HttpPost request = buildPostRequest(uri, ContentType.APPLICATION_OCTET_STREAM.getMimeType(),
@@ -96,7 +93,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		return parseDetectAPIResponse(response);
 	}
 
-	private Response parseDetectAPIResponse(HttpResponse response) throws ParseException, IOException, JSONException {
+	private Response parseDetectAPIResponse(HttpResponse response) throws IOException {
 		int statusCode = response.getStatusLine().getStatusCode();
 		String responseEntity = HttpUtils.getResponseEntity(response.getEntity());
 
@@ -107,7 +104,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		return parseDetectAPIResponse(responseEntity);
 	}
 
-	private Response parseDetectAPIResponse(String responseEntity) throws JSONException {
+	private Response parseDetectAPIResponse(String responseEntity) {
 		JSONArray jsonArray = new JSONArray(responseEntity);
 		if (jsonArray.length() == 0) {
 			LOGGER.warn("Cannot detect any faces.");
@@ -132,8 +129,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		}
 	}
 
-	private Response invokeIdentifyAPI(String faceId)
-			throws URISyntaxException, ClientProtocolException, IOException, JSONException {
+	private Response invokeIdentifyAPI(String faceId) throws URISyntaxException, IOException {
 		URI uri = new URIBuilder(IDENTIFY_URL).build();
 		String reqContent = buildIdentifyRequestContent(faceId);
 
@@ -143,7 +139,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		return parseIdentifyAPIResponse(response);
 	}
 
-	private String buildIdentifyRequestContent(String faceId) throws JSONException {
+	private String buildIdentifyRequestContent(String faceId) {
 		JSONArray faceIds = new JSONArray();
 		faceIds.put(faceId);
 
@@ -156,7 +152,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		return json.toString();
 	}
 
-	private Response parseIdentifyAPIResponse(HttpResponse response) throws ParseException, IOException, JSONException {
+	private Response parseIdentifyAPIResponse(HttpResponse response) throws IOException {
 		int statusCode = response.getStatusLine().getStatusCode();
 		String responseEntity = HttpUtils.getResponseEntity(response.getEntity());
 
@@ -167,7 +163,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		return parseIdentifyAPIResponse(responseEntity);
 	}
 
-	private Response parseIdentifyAPIResponse(String responseEntity) throws JSONException {
+	private Response parseIdentifyAPIResponse(String responseEntity) {
 		JSONArray jsonArray = new JSONArray(responseEntity);
 		JSONObject jsonObject = jsonArray.getJSONObject(0);
 		JSONArray candidates = jsonObject.getJSONArray("candidates");
