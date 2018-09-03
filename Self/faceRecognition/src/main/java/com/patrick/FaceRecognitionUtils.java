@@ -7,8 +7,6 @@ import java.net.URISyntaxException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.ParseException;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
@@ -17,11 +15,11 @@ import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.patrick.Authentication.PersonGroup;
 import com.patrick.Authentication.PersonGroup.Person;
@@ -34,12 +32,12 @@ import com.patrick.Authentication.PersonGroup.Person;
 public class FaceRecognitionUtils {
 
 	private static final HttpClient HTTP_CLIENT = HttpClients.createDefault();
-	private static final Logger LOGGER = LogManager.getLogger("FaceRecognitionlogger");
+	private static final Logger LOGGER = LoggerFactory.getLogger("faceRecognitionlogger");
 
 	private static final String DETECT_URL = "https://westus.api.cognitive.microsoft.com/face/v1.0/detect";
 	private static final String IDENTIFY_URL = "https://westus.api.cognitive.microsoft.com/face/v1.0/identify";
 
-	private static final PersonGroup personGroup = PersonGroup.Colleague;
+	private static final PersonGroup personGroup = PersonGroup.COLLEAGUE;
 
 	public static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
 
@@ -81,7 +79,7 @@ public class FaceRecognitionUtils {
 		}
 
 		String faceId = resp.getMsg();
-		LOGGER.debug("Face id is " + faceId);
+		LOGGER.debug("Face id is {}.", faceId);
 
 		resp = identify(faceId);
 		if (!resp.isSuccess()) {
@@ -89,12 +87,12 @@ public class FaceRecognitionUtils {
 		}
 
 		String personId = resp.getMsg();
-		LOGGER.debug("Person id is " + personId);
+		LOGGER.debug("Person id is {}.", personId);
 
 		String personName = getPersonNameByPersonId(personId);
 
 		if (personName.isEmpty()) {
-			LOGGER.warn("Cannot get person name by person id [" + personId + "]");
+			LOGGER.warn("Cannot get person name by person id [{}]", personId);
 			return buildResponse(false, INTERNAL_SERVER_ERROR);
 		}
 
@@ -120,16 +118,15 @@ public class FaceRecognitionUtils {
 		return "";
 	}
 
-	private static String getResponseEntity(HttpEntity entity) throws ParseException, IOException {
+	private static String getResponseEntity(HttpEntity entity) throws IOException {
 		String responseEntity = EntityUtils.toString(entity);
-		LOGGER.debug("Response entity is " + responseEntity);
+		LOGGER.debug("Response entity is {}.", responseEntity);
 		return responseEntity;
 	}
 
 	/* ============================== Face Detect ============================== */
 
-	private static Response invokeDetectAPI(InputStream image)
-			throws URISyntaxException, ClientProtocolException, IOException {
+	private static Response invokeDetectAPI(InputStream image) throws URISyntaxException, IOException {
 		URI uri = new URIBuilder(DETECT_URL).build();
 
 		HttpPost request = buildPostRequest(uri, ContentType.APPLICATION_OCTET_STREAM.getMimeType(),
@@ -139,8 +136,7 @@ public class FaceRecognitionUtils {
 		return parseDetectAPIResponse(response);
 	}
 
-	private static Response parseDetectAPIResponse(HttpResponse response)
-			throws ParseException, IOException, JSONException {
+	private static Response parseDetectAPIResponse(HttpResponse response) throws IOException {
 		int statusCode = response.getStatusLine().getStatusCode();
 		String responseEntity = getResponseEntity(response.getEntity());
 
@@ -151,7 +147,7 @@ public class FaceRecognitionUtils {
 		return parseDetectAPIResponse(responseEntity);
 	}
 
-	private static Response parseDetectAPIResponse(String responseEntity) throws JSONException {
+	private static Response parseDetectAPIResponse(String responseEntity) {
 		JSONArray jsonArray = new JSONArray(responseEntity);
 		if (jsonArray.length() == 0) {
 			LOGGER.warn("Cannot detect any faces.");
@@ -180,15 +176,14 @@ public class FaceRecognitionUtils {
 		try {
 			return invokeDetectAPI(image);
 		} catch (URISyntaxException | IOException | JSONException e) {
-			LOGGER.error("Exception occurs during invoking Microsoft Cognitive Service - Face Detect .", e);
+			LOGGER.error("Exception occurs during invoking Microsoft Cognitive Service - Face Detect.", e);
 			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	/* ============================= Face Identify ============================= */
 
-	private static Response invokeIdentifyAPI(String faceId)
-			throws URISyntaxException, ClientProtocolException, IOException, JSONException {
+	private static Response invokeIdentifyAPI(String faceId) throws URISyntaxException, IOException {
 		URI uri = new URIBuilder(IDENTIFY_URL).build();
 		String reqContent = buildIdentifyRequestContent(faceId);
 
@@ -198,7 +193,7 @@ public class FaceRecognitionUtils {
 		return parseIdentifyAPIResponse(response);
 	}
 
-	private static String buildIdentifyRequestContent(String faceId) throws JSONException {
+	private static String buildIdentifyRequestContent(String faceId) {
 		JSONArray faceIds = new JSONArray();
 		faceIds.put(faceId);
 
@@ -211,8 +206,7 @@ public class FaceRecognitionUtils {
 		return json.toString();
 	}
 
-	private static Response parseIdentifyAPIResponse(HttpResponse response)
-			throws ParseException, IOException, JSONException {
+	private static Response parseIdentifyAPIResponse(HttpResponse response) throws IOException {
 		int statusCode = response.getStatusLine().getStatusCode();
 		String responseEntity = getResponseEntity(response.getEntity());
 
@@ -223,7 +217,7 @@ public class FaceRecognitionUtils {
 		return parseIdentifyAPIResponse(responseEntity);
 	}
 
-	private static Response parseIdentifyAPIResponse(String responseEntity) throws JSONException {
+	private static Response parseIdentifyAPIResponse(String responseEntity) {
 		JSONArray jsonArray = new JSONArray(responseEntity);
 		JSONObject jsonObject = jsonArray.getJSONObject(0);
 		JSONArray candidates = jsonObject.getJSONArray("candidates");
@@ -240,8 +234,11 @@ public class FaceRecognitionUtils {
 		try {
 			return invokeIdentifyAPI(faceId);
 		} catch (URISyntaxException | IOException | JSONException e) {
-			LOGGER.error("Exception occurs during invoking Microsoft Cognitive Service - Face Identify .", e);
+			LOGGER.error("Exception occurs during invoking Microsoft Cognitive Service - Face Identify.", e);
 			return Response.buildFailureResponse(INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	private FaceRecognitionUtils() {
 	}
 }

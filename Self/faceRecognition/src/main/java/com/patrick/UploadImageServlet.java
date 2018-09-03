@@ -9,9 +9,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -21,7 +21,7 @@ import org.json.JSONObject;
 @WebServlet("/upload")
 public class UploadImageServlet extends HttpServlet {
 
-	private static final Logger LOGGER = LogManager.getLogger("FaceRecognitionlogger");
+	private static final Logger LOGGER = LoggerFactory.getLogger("faceRecognitionlogger");
 
 	/**
 	 * 
@@ -31,13 +31,14 @@ public class UploadImageServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		LOGGER.info("Receive a new request.");
+		resp.setContentType("application/json");
 
 		try {
 			identifyByFace(req, resp);
 		} catch (IOException e) {
+			LOGGER.error("Exception occurs in UploadImageServlet.identifyByFace.", e);
 			resp.setStatus(500);
 			printResponse(resp, FaceRecognitionUtils.INTERNAL_SERVER_ERROR);
-			LOGGER.error("Exception occurs in UploadImageServlet.identifyByFace", e);
 		}
 	}
 
@@ -57,7 +58,8 @@ public class UploadImageServlet extends HttpServlet {
 		}
 
 		if (json.getBoolean("isSuccess")) {
-			printResponse(resp, "Hello, I think you are " + json.getString("msg") + ", right?");
+			printResponse(resp, new StringBuilder("Hello, I think you are ").append(json.getString("msg"))
+					.append(", right?").toString());
 		} else {
 			String msg = json.getString("msg");
 
@@ -69,9 +71,15 @@ public class UploadImageServlet extends HttpServlet {
 		}
 	}
 
-	private void printResponse(HttpServletResponse resp, String msg) throws IOException {
-		resp.setContentType("application/json");
-		PrintWriter pw = resp.getWriter();
+	private void printResponse(HttpServletResponse resp, String msg) {
+		PrintWriter pw = null;
+		try {
+			pw = resp.getWriter();
+		} catch (IOException e) {
+			LOGGER.error("Exception occurs in UploadImageServlet.printResponse.", e);
+			return;
+		}
+
 		JSONObject json = new JSONObject();
 		json.put("msg", msg);
 		pw.println(json.toString());

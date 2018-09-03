@@ -7,17 +7,17 @@ package com.patrick;
  */
 public class Authentication {
 
-	public static final String SUBSCRIPTION_KEY = "*******************";
+	public static final String SUBSCRIPTION_KEY = "*** Subscription Key ***";
 
 	public enum PersonGroup {
-		Family("*******************", 
-				new Person[] { new Person("Patrick", "*******************"),
-						new Person("Mum", "*******************"),
-						new Person("Dad", "*******************") }),
-		Colleague("*******************", 
-				new Person[] { new Person("Patrick", "*******************"),
-						new Person("Caesar", "*******************"),
-						new Person("Tom", "*******************") });
+		FAMILY("family", 
+				new Person[] { new Person("Patrick", "*** Patrick Id ***"),
+						new Person("Mum", "*** Mum Id ***"),
+						new Person("Dad", "*** Dad Id ***") }),
+		COLLEAGUE("Colleague", 
+				new Person[] { new Person("Patrick", "*** Patrick Id ***"),
+						new Person("Caesar", "*** Caesar Id ***"),
+						new Person("Tom", "*** Tom Id ***") });
 
 		private String personGroupId;
 		private Person[] persons;
@@ -37,8 +37,8 @@ public class Authentication {
 		
 		public static class Person {
 
-			public String name;
-			public String id;
+			private String name;
+			private String id;
 
 			public Person(String name, String id) {
 				super();
