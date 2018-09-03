@@ -9,7 +9,7 @@
 
 # Steps
   - Change Authentication.java
-  - Change log4j2.xml
+  - Change logback.xml
   - Build and deploy to tomcat
 
 # Demo
