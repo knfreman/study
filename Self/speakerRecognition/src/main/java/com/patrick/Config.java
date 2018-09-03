@@ -3,8 +3,8 @@ package com.patrick;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class Config {
 
-	private static final Logger LOGGER = LogManager.getLogger("SpeakerRecognitionlogger");
+	private static final Logger LOGGER = LoggerFactory.getLogger("speakerRecognitionLogger");
 
 	private String dest;
 	private String os;

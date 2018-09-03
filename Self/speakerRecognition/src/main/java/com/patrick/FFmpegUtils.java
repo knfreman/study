@@ -2,8 +2,8 @@ package com.patrick;
 
 import java.io.File;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -12,20 +12,20 @@ import org.apache.logging.log4j.Logger;
  */
 public class FFmpegUtils {
 	private static final String DEST = Config.getInstance().getDest();
-	private static final Logger LOGGER = LogManager.getLogger("SpeakerRecognitionlogger");
+	private static final Logger LOGGER = LoggerFactory.getLogger("speakerRecognitionLogger");
 
 	private static final String CMD_FORMAT = "ffmpeg -i %s -ar 16000 -ac 1 -acodec pcm_s16le %s.wav";
 
-	private static final String arg0;
-	private static final String arg1;
+	private static final String ARG0;
+	private static final String ARG1;
 
 	static {
 		if ("windows".equalsIgnoreCase(Config.getInstance().getOs())) {
-			arg0 = "cmd.exe";
-			arg1 = "/C";
+			ARG0 = "cmd.exe";
+			ARG1 = "/C";
 		} else {
-			arg0 = "/bin/sh";
-			arg1 = "-c";
+			ARG0 = "/bin/sh";
+			ARG1 = "-c";
 		}
 	}
 
@@ -40,8 +40,8 @@ public class FFmpegUtils {
 		LOGGER.debug(cmd);
 
 		try {
-			Runtime.getRuntime().exec(new String[] { arg0, arg1, cmd }).waitFor();
-			return filePath + ".wav";
+			Runtime.getRuntime().exec(new String[] { ARG0, ARG1, cmd }).waitFor();
+			return new StringBuilder(filePath).append(".wav").toString();
 		} catch (Exception e) {
 			LOGGER.error("Exception occurs during using ffmpeg to transcode.", e);
 			return "";

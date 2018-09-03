@@ -5,7 +5,7 @@
 
 # Steps
   - Change Authentication.java
-  - Change config.properties and log4j2.xml
+  - Change config.properties and logback.xml
   - Build and deploy to tomcat
 
 # Demo
