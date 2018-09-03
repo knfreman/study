@@ -25,7 +25,7 @@ import com.patrick.sso.profileid.ITokenProfileIdMap;
  * @author Patrick Pan
  *
  */
-public class ProfileServiceIdTest {
+public class ProfileIdServiceTest {
 
 	@Mock
 	private ITokenProfileIdMap tokenProfileMap;
