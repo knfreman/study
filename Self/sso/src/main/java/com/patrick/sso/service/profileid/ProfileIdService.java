@@ -30,12 +30,12 @@ public class ProfileIdService {
 
 	public ResponseWrapper getProfileId(InputStream inputStream) {
 		String jsonString = CommonUtils.inputStreamToString(inputStream);
-		LOGGER.debug("JSON String is " + jsonString);
+		LOGGER.debug("JSON String is {}.", jsonString);
 
 		try {
 			return getProfileId(new JSONObject(jsonString));
 		} catch (JSONException e) {
-			LOGGER.error("Exception occurs in ProfileService.getProfileId", e);
+			LOGGER.error("Exception occurs in ProfileService.getProfileId.", e);
 			return ResponseWrapper.buildFailureResponse(400, ResponseWrapper.INVALID_JSON_FORMAT);
 		}
 	}

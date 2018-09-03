@@ -31,7 +31,7 @@ public class HttpUtils {
 
 	public static String getResponseEntity(HttpEntity entity) throws IOException {
 		String responseEntity = EntityUtils.toString(entity);
-		LOGGER.debug("Response entity is " + responseEntity);
+		LOGGER.debug("Response entity is {}.", responseEntity);
 		return responseEntity;
 	}
 

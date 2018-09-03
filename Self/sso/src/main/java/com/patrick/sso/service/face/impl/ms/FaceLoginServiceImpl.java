@@ -47,7 +47,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		}
 
 		String faceId = resp.getMsg();
-		LOGGER.debug("Face id is " + faceId);
+		LOGGER.debug("Face id is {}.", faceId);
 
 		resp = identify(faceId);
 		if (!resp.isSuccess()) {
@@ -55,7 +55,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		}
 
 		String personId = resp.getMsg();
-		LOGGER.debug("Person id is " + personId);
+		LOGGER.debug("Person id is {}.", personId);
 
 		String token = UUID.randomUUID().toString();
 		tokenProfileIdMap.put(token, personId);

@@ -50,7 +50,7 @@ public class FaceLoginController {
 
 	private ResponseWrapper loginByFace(HttpServletRequest req) throws IOException {
 		String lang = CommonUtils.parseQueryString(req.getQueryString()).get("lang");
-		LOGGER.debug("Receive parameter: lang = [" + lang + "]");
+		LOGGER.debug("Receive parameter: lang = [{}]", lang);
 		try (ServletInputStream inputStream = req.getInputStream()) {
 			if (inputStream.isFinished()) {
 				return ResponseWrapper.buildFailureResponse(400, "Binary data of image is missing");
