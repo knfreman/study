@@ -1,23 +1,21 @@
 package com.patrick.sso.service.face.impl.ms;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.UUID;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import com.patrick.sso.ResponseWrapper;
 import com.patrick.sso.profileid.ITokenProfileIdMap;
@@ -35,9 +33,20 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 
 	private static final String DETECT_URL = "https://westus.api.cognitive.microsoft.com/face/v1.0/detect";
 	private static final String IDENTIFY_URL = "https://westus.api.cognitive.microsoft.com/face/v1.0/identify";
+	private static final String SUBSCRIPTION_KEY = "Ocp-Apim-Subscription-Key";
 
 	@Autowired
+	private RestTemplate restTemplate;
+	@Autowired
 	private ITokenProfileIdMap tokenProfileIdMap;
+
+	private HttpHeaders invokeDetectAPIHeaders;
+	private HttpHeaders invokeIdentifyAPIHeaders;
+
+	public FaceLoginServiceImpl() {
+		invokeDetectAPIHeaders = buildHttpHeaders(MediaType.APPLICATION_OCTET_STREAM);
+		invokeIdentifyAPIHeaders = buildHttpHeaders(MediaType.APPLICATION_JSON);
+	}
 
 	@Override
 	public ResponseWrapper login(InputStream image, String lang) {
@@ -65,37 +74,30 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		return responseWrapper;
 	}
 
-	private HttpPost buildPostRequest(URI uri, String contentType, HttpEntity reqEntity) {
-		HttpPost request = new HttpPost(uri);
-		request.setHeader(HttpUtils.CONTENT_TYPE, contentType);
-		request.setHeader(HttpUtils.SUBSCRIPTION_KEY, Authentication.SUBSCRIPTION_KEY);
-		request.setEntity(reqEntity);
-
-		return request;
+	private HttpHeaders buildHttpHeaders(MediaType contentType) {
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add(SUBSCRIPTION_KEY, Authentication.SUBSCRIPTION_KEY);
+		httpHeaders.setContentType(contentType);
+		return httpHeaders;
 	}
 
 	private Response getFaceId(InputStream image) {
 		try {
 			return invokeDetectAPI(image);
-		} catch (URISyntaxException | IOException | JSONException e) {
-			LOGGER.error("Exception occurs during invoking Microsoft Cognitive Service - Face Detect .", e);
+		} catch (URISyntaxException | RestClientException | JSONException e) {
+			LOGGER.error("Exception occurs during invoking Microsoft Cognitive Service - Face Detect.", e);
 			return Response.buildFailureResponse(ResponseWrapper.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	private Response invokeDetectAPI(InputStream image) throws URISyntaxException, IOException {
-		URI uri = new URIBuilder(DETECT_URL).build();
+	private Response invokeDetectAPI(InputStream image) throws URISyntaxException {
+		URI uri = new URI(DETECT_URL);
+		HttpEntity<InputStream> entity = new HttpEntity<>(image, invokeDetectAPIHeaders);
+		ResponseEntity<String> resp = restTemplate.postForEntity(uri, entity, String.class);
 
-		HttpPost request = buildPostRequest(uri, ContentType.APPLICATION_OCTET_STREAM.getMimeType(),
-				new InputStreamEntity(image));
-		HttpResponse response = HttpUtils.sendRequest(request);
-
-		return parseDetectAPIResponse(response);
-	}
-
-	private Response parseDetectAPIResponse(HttpResponse response) throws IOException {
-		int statusCode = response.getStatusLine().getStatusCode();
-		String responseEntity = HttpUtils.getResponseEntity(response.getEntity());
+		int statusCode = resp.getStatusCodeValue();
+		String responseEntity = resp.getBody();
+		LOGGER.debug("Response entity is {}.", responseEntity);
 
 		if (!HttpUtils.isStatusCode200(statusCode)) {
 			return Response.buildFailureResponse(ResponseWrapper.INTERNAL_SERVER_ERROR);
@@ -123,20 +125,27 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 	private Response identify(String faceId) {
 		try {
 			return invokeIdentifyAPI(faceId);
-		} catch (URISyntaxException | IOException | JSONException e) {
-			LOGGER.error("Exception occurs during invoking Microsoft Cognitive Service - Face Identify .", e);
+		} catch (URISyntaxException | RestClientException | JSONException e) {
+			LOGGER.error("Exception occurs during invoking Microsoft Cognitive Service - Face Identify.", e);
 			return Response.buildFailureResponse(ResponseWrapper.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	private Response invokeIdentifyAPI(String faceId) throws URISyntaxException, IOException {
-		URI uri = new URIBuilder(IDENTIFY_URL).build();
+	private Response invokeIdentifyAPI(String faceId) throws URISyntaxException {
+		URI uri = new URI(IDENTIFY_URL);
 		String reqContent = buildIdentifyRequestContent(faceId);
+		HttpEntity<String> entity = new HttpEntity<>(reqContent, invokeIdentifyAPIHeaders);
+		ResponseEntity<String> resp = restTemplate.postForEntity(uri, entity, String.class);
 
-		StringEntity reqEntity = new StringEntity(reqContent);
-		HttpPost request = buildPostRequest(uri, ContentType.APPLICATION_JSON.getMimeType(), reqEntity);
-		HttpResponse response = HttpUtils.sendRequest(request);
-		return parseIdentifyAPIResponse(response);
+		int statusCode = resp.getStatusCodeValue();
+		String responseEntity = resp.getBody();
+		LOGGER.debug("Response entity is {}.", responseEntity);
+
+		if (!HttpUtils.isStatusCode200(statusCode)) {
+			return Response.buildFailureResponse(ResponseWrapper.INTERNAL_SERVER_ERROR);
+		}
+
+		return parseIdentifyAPIResponse(responseEntity);
 	}
 
 	private String buildIdentifyRequestContent(String faceId) {
@@ -152,24 +161,13 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		return json.toString();
 	}
 
-	private Response parseIdentifyAPIResponse(HttpResponse response) throws IOException {
-		int statusCode = response.getStatusLine().getStatusCode();
-		String responseEntity = HttpUtils.getResponseEntity(response.getEntity());
-
-		if (!HttpUtils.isStatusCode200(statusCode)) {
-			return Response.buildFailureResponse(ResponseWrapper.INTERNAL_SERVER_ERROR);
-		}
-
-		return parseIdentifyAPIResponse(responseEntity);
-	}
-
 	private Response parseIdentifyAPIResponse(String responseEntity) {
 		JSONArray jsonArray = new JSONArray(responseEntity);
 		JSONObject jsonObject = jsonArray.getJSONObject(0);
 		JSONArray candidates = jsonObject.getJSONArray("candidates");
 		if (candidates.length() == 0) {
 			return Response.buildFailureResponse(
-					"Sorry, I don't know who you are. Please ask Patrick to introduce you to me.");
+					"Sorry, I don't know who you are. Please ask Patrick Pan to introduce you to me.");
 		}
 
 		String personId = candidates.getJSONObject(0).getString("personId");
