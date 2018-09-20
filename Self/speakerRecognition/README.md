@@ -1,4 +1,4 @@
-# Prerequisite
+# Prerequisites
   - Microsoft Speaker Recognition API
   - FFmpeg
   - Tomcat
