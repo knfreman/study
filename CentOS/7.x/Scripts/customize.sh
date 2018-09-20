@@ -1,10 +1,10 @@
 backupFile(){
-	echo "$0: cp -f $1 $1.bak_\`date +\"%Y-%m-%d_%H:%M:%S\"\`"
+	echo "cp -f $1 $1.bak_\`date +\"%Y-%m-%d_%H:%M:%S\"\`"
 	cp -f $1 $1.bak_`date +"%Y-%m-%d_%H:%M:%S"`
 }
 
 ##################################
- # Show Line Number in Vi and Vim #
+# Show Line Number in Vi and Vim #
 ##################################
 
 appendSetNumber(){
