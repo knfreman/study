@@ -30,8 +30,8 @@ import com.patrick.annotation.Transactional;
  */
 public class ObjectDecorator implements InvocationHandler {
 
-	private static ThreadLocal<Boolean> transaction = new ThreadLocal<>();
-	private static ThreadLocal<Connection> connection = new ThreadLocal<>();
+	private static ThreadLocal<Boolean> transactionStatusFlags = new ThreadLocal<>();
+	private static ThreadLocal<Connection> connections = new ThreadLocal<>();
 
 	private Object obj;
 
@@ -47,10 +47,10 @@ public class ObjectDecorator implements InvocationHandler {
 
 		boolean isCommit = true;
 		if (hasTransaction()) {
-			System.out.println("已存在于事务当中...");
+			System.out.println(Thread.currentThread().getName() + " - Current thread already created a transaction.");
 			isCommit = false;
 		} else {
-			System.out.println("没有事务，需要开启一个事务...");
+			System.out.println(Thread.currentThread().getName() + " - Need to create a new transaction.");
 			startTransaction();
 		}
 
@@ -60,7 +60,7 @@ public class ObjectDecorator implements InvocationHandler {
 		}
 
 		commitTransaction();
-		System.out.println("操作完成，提交事务...");
+		System.out.println(Thread.currentThread().getName() + " - Commit transaction.");
 
 		return result;
 	}
@@ -78,7 +78,7 @@ public class ObjectDecorator implements InvocationHandler {
 	}
 
 	private boolean hasTransaction() {
-		Boolean flag = transaction.get();
+		Boolean flag = transactionStatusFlags.get();
 
 		if (null == flag) {
 			return false;
@@ -89,20 +89,20 @@ public class ObjectDecorator implements InvocationHandler {
 
 	private void startTransaction() throws SQLException {
 		getConnection().setAutoCommit(false);
-		transaction.set(true);
+		transactionStatusFlags.set(true);
 	}
 
 	private void commitTransaction() throws SQLException {
 		getConnection().commit();
-		transaction.set(false);
+		transactionStatusFlags.set(false);
 	}
 
 	private Connection getConnection() {
-		Connection conn = connection.get();
+		Connection conn = connections.get();
 
 		if (null == conn) {
 			conn = new MyConnection();
-			connection.set(conn);
+			connections.set(conn);
 		}
 
 		return conn;

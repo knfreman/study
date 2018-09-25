@@ -13,18 +13,18 @@ public class ServiceAImpl implements ServiceA {
 	@Override
 	@Transactional
 	public void function1() {
-		System.out.println("=== ServiceA#function1 需要事务。===");
+		System.out.println(Thread.currentThread().getName() + " - ServiceA#function1 requires a transaction.");
 	}
 
 	@Override
 	@Transactional
 	public void function2() {
-		System.out.println("=== ServiceA#function2需要事务。 ===");
+		System.out.println(Thread.currentThread().getName() + " - ServiceA#function2 requires a transaction.");
 	}
 
 	@Override
 	public void function3() {
-		System.out.println("=== ServiceA#function3不需要事务。 ===");
+		System.out.println(Thread.currentThread().getName() + " - ServiceA#function3 doesn't require a transaction.");
 	}
 
 }

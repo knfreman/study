@@ -14,18 +14,34 @@ public class Main {
 
 	public static void main(String[] args) {
 		BeanFactory factory = new MyFactory();
-		
-		// ======================= 普通事务 ======================= //
+
+		// ======================= General Transaction ======================= //
 		ServiceA serviceA = (ServiceA) factory.getBean("serviceA");
-		serviceA.function1();
-		serviceA.function2();
-		serviceA.function3();
-		
-		System.out.println("------------------------------------");
-		
-		// ======================= 嵌套事务 ======================= //
+		new Thread(new Runnable() {
+			public void run() {
+				serviceA.function1();
+			}
+		}).start();
+
+		new Thread(new Runnable() {
+			public void run() {
+				serviceA.function2();
+			}
+		}).start();
+
+		new Thread(new Runnable() {
+			public void run() {
+				serviceA.function3();
+			}
+		}).start();
+
+		// ======================= Nested Transaction ======================= //
 		ServiceB serviceB = (ServiceB) factory.getBean("serviceB");
-		serviceB.function();
+		new Thread(new Runnable() {
+			public void run() {
+				serviceB.function();
+			}
+		}).start();
 	}
 
 }

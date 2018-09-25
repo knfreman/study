@@ -20,7 +20,7 @@ public class ServiceBImpl implements ServiceB {
 	@Override
 	@Transactional
 	public void function() {
-		System.out.println("=== ServiceB#function需要事务。 ===");
+		System.out.println(Thread.currentThread().getName() + " - ServiceB#function requires a transaction.");
 		this.serviceA.function1();
 		this.serviceA.function2();
 	}
