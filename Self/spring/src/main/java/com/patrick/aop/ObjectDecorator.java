@@ -28,17 +28,14 @@ import com.patrick.annotation.Transactional;
  * @author Patrick Pan
  *
  */
-public class ObjectProxy implements InvocationHandler {
+public class ObjectDecorator implements InvocationHandler {
 
 	private static ThreadLocal<Boolean> transaction = new ThreadLocal<>();
 	private static ThreadLocal<Connection> connection = new ThreadLocal<>();
 
 	private Object obj;
 
-	public ObjectProxy() {
-	}
-
-	public void setObj(Object obj) {
+	public ObjectDecorator(Object obj) {
 		this.obj = obj;
 	}
 

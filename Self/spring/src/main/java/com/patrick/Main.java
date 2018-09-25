@@ -14,13 +14,16 @@ public class Main {
 
 	public static void main(String[] args) {
 		BeanFactory factory = new MyFactory();
+		
 		// ======================= 普通事务 ======================= //
 		ServiceA serviceA = (ServiceA) factory.getBean("serviceA");
 		serviceA.function1();
 		serviceA.function2();
 		serviceA.function3();
-		// ======================= 嵌套事务 ======================= //
+		
 		System.out.println("------------------------------------");
+		
+		// ======================= 嵌套事务 ======================= //
 		ServiceB serviceB = (ServiceB) factory.getBean("serviceB");
 		serviceB.function();
 	}

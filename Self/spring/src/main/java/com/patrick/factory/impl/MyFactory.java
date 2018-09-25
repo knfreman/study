@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.patrick.Main;
-import com.patrick.aop.ObjectProxy;
+import com.patrick.aop.ObjectDecorator;
 import com.patrick.factory.BeanFactory;
 import com.patrick.service.ServiceA;
 import com.patrick.service.ServiceB;
@@ -33,8 +33,7 @@ public class MyFactory implements BeanFactory {
 
 	private void init() {
 		// ======================== ServiceA ======================== //
-		ObjectProxy proxy = new ObjectProxy();
-		proxy.setObj(new ServiceAImpl());
+		ObjectDecorator proxy = new ObjectDecorator(new ServiceAImpl());
 		ServiceA serviceA = (ServiceA) Proxy.newProxyInstance(Main.class.getClassLoader(),
 				new Class<?>[] { ServiceA.class }, proxy);
 		map.put("serviceA", serviceA);
@@ -42,8 +41,7 @@ public class MyFactory implements BeanFactory {
 		// ======================== ServiceB ======================== //
 		ServiceBImpl s = new ServiceBImpl();
 		s.setService(serviceA);
-		proxy = new ObjectProxy();
-		proxy.setObj(s);
+		proxy = new ObjectDecorator(s);
 		map.put("serviceB",
 				Proxy.newProxyInstance(Main.class.getClassLoader(), new Class<?>[] { ServiceB.class }, proxy));
 	}
