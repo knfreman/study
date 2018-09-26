@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 
 import com.patrick.sso.ResponseWrapper;
 import com.patrick.sso.TestUtils;
@@ -29,18 +30,18 @@ import com.patrick.sso.service.profileid.ProfileIdService;
 public class ProfileIdControllerTest {
 
 	@Mock
-	private ProfileIdService profileService;
+	private ProfileIdService profileIdService;
 	@InjectMocks
-	private ProfileIdController profileController;
+	private ProfileIdController profileIdController;
 
-	private static final ResponseWrapper responseWrapper = ResponseWrapper.buildFailureResponse(400,
+	private static final ResponseWrapper responseWrapper = ResponseWrapper.buildFailureResponse(HttpStatus.BAD_REQUEST,
 			ResponseWrapper.INVALID_JSON_FORMAT);
 
 	@Before
 	public void initMocks() throws IOException {
 		// To initialize annotated fields
 		MockitoAnnotations.initMocks(this);
-		when(profileService.getProfileId(any())).thenReturn(responseWrapper);
+		when(profileIdService.getProfileId(any())).thenReturn(responseWrapper);
 	}
 
 	@Test
@@ -48,8 +49,8 @@ public class ProfileIdControllerTest {
 		HttpServletRequest req = mock(HttpServletRequest.class);
 		when(req.getInputStream()).thenThrow(new IOException("Unit Test"));
 		HttpServletResponse resp = mock(HttpServletResponse.class);
-		Map<String, Object> content = profileController.getProfileId(req, resp);
-		TestUtils.verify(content, 1, ResponseWrapper.INTERNAL_SERVER_ERROR);
+		Map<String, Object> content = profileIdController.getProfile(req, resp);
+		TestUtils.verify(content, 1, "Internal Server Error");
 	}
 
 	@Test
@@ -60,7 +61,7 @@ public class ProfileIdControllerTest {
 		HttpServletRequest req = mock(HttpServletRequest.class);
 		when(req.getInputStream()).thenReturn(inputStream);
 		HttpServletResponse resp = mock(HttpServletResponse.class);
-		Map<String, Object> content = profileController.getProfileId(req, resp);
+		Map<String, Object> content = profileIdController.getProfile(req, resp);
 		TestUtils.verify(content, 1, ResponseWrapper.INVALID_JSON_FORMAT);
 	}
 
@@ -71,7 +72,7 @@ public class ProfileIdControllerTest {
 		HttpServletRequest req = mock(HttpServletRequest.class);
 		when(req.getInputStream()).thenReturn(inputStream);
 		HttpServletResponse resp = mock(HttpServletResponse.class);
-		Map<String, Object> content = profileController.getProfileId(req, resp);
+		Map<String, Object> content = profileIdController.getProfile(req, resp);
 		TestUtils.verify(content, 1, ResponseWrapper.INVALID_JSON_FORMAT);
 	}
 }

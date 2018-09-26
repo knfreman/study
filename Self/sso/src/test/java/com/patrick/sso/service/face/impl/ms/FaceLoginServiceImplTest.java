@@ -1,6 +1,5 @@
 package com.patrick.sso.service.face.impl.ms;
 
-import static com.patrick.sso.ResponseWrapper.INTERNAL_SERVER_ERROR;
 import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
 import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.forbidden;
@@ -99,17 +98,17 @@ public class FaceLoginServiceImplTest {
 
 	@Test
 	public void testLogin0() {
-		testLogin(DETECT_BODY_EXCEPTION, 403, INTERNAL_SERVER_ERROR);
+		testLogin(DETECT_BODY_EXCEPTION, 500, "Internal Server Error");
 	}
 
 	@Test
 	public void testLogin1() {
-		testLogin(DETECT_BODY_NO_FACES, 403, "Cannot detect any faces.");
+		testLogin(DETECT_BODY_NO_FACES, 400, "Cannot detect any faces.");
 	}
 
 	@Test
 	public void testLogin2() {
-		testLogin(DETECT_BODY_AT_LEASET_TWO_FACES, 403, "At least two faces are detected.");
+		testLogin(DETECT_BODY_AT_LEASET_TWO_FACES, 400, "At least two faces are detected.");
 	}
 
 	@Test
@@ -120,7 +119,7 @@ public class FaceLoginServiceImplTest {
 
 	@Test
 	public void testLogin4() {
-		testLogin(DETECT_BODY_KNOWN_FACES_FOR_EXCEPTION, 403, INTERNAL_SERVER_ERROR);
+		testLogin(DETECT_BODY_KNOWN_FACES_FOR_EXCEPTION, 500, "Internal Server Error");
 	}
 
 	@Test

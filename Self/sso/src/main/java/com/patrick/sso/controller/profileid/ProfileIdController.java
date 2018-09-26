@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,14 +34,14 @@ public class ProfileIdController {
 	private ProfileIdService profileIdService;
 
 	@PostMapping(consumes = "application/json", produces = "application/json")
-	public Map<String, Object> getProfileId(HttpServletRequest req, HttpServletResponse resp) {
+	public Map<String, Object> getProfile(HttpServletRequest req, HttpServletResponse resp) {
 		ResponseWrapper responseWrapper = null;
 
 		try {
-			responseWrapper = getProfileId(req);
+			responseWrapper = getProfile(req);
 		} catch (IOException e) {
 			LOGGER.error("Exception occurs in FaceLoginController.loginByFace", e);
-			responseWrapper = ResponseWrapper.buildFailureResponse(500, ResponseWrapper.INTERNAL_SERVER_ERROR);
+			responseWrapper = ResponseWrapper.buildFailureResponse(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 		resp.setStatus(responseWrapper.getStatusCode());
@@ -48,10 +49,10 @@ public class ProfileIdController {
 		return responseWrapper.getContent();
 	}
 
-	private ResponseWrapper getProfileId(HttpServletRequest req) throws IOException {
+	private ResponseWrapper getProfile(HttpServletRequest req) throws IOException {
 		try (ServletInputStream inputStream = req.getInputStream()) {
 			if (inputStream.isFinished()) {
-				return ResponseWrapper.buildFailureResponse(400, "Invalid JSON Format");
+				return ResponseWrapper.buildFailureResponse(HttpStatus.BAD_REQUEST, "Invalid JSON Format");
 			}
 
 			return profileIdService.getProfileId(inputStream);

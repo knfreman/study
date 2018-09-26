@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 
 import com.patrick.sso.ResponseWrapper;
 import com.patrick.sso.service.face.IFaceLoginService;
@@ -33,7 +34,7 @@ public class FaceLoginControllerTest {
 	@InjectMocks
 	private FaceLoginController faceLoginController;
 
-	private static final ResponseWrapper responseWrapper = ResponseWrapper.buildFailureResponse(400,
+	private static final ResponseWrapper responseWrapper = ResponseWrapper.buildFailureResponse(HttpStatus.BAD_REQUEST,
 			ResponseWrapper.INVALID_JSON_FORMAT);
 
 	@Before
@@ -49,7 +50,7 @@ public class FaceLoginControllerTest {
 		when(req.getInputStream()).thenThrow(new IOException("Unit Test"));
 		HttpServletResponse resp = mock(HttpServletResponse.class);
 		Map<String, Object> content = faceLoginController.loginByFace(req, resp);
-		verify(content, 1, ResponseWrapper.INTERNAL_SERVER_ERROR);
+		verify(content, 1, "Internal Server Error");
 	}
 
 	@Test

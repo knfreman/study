@@ -1,5 +1,8 @@
 package com.patrick.sso.service.face.impl.ms;
 
+import static com.patrick.sso.ResponseWrapper.buildFailureResponse;
+import static com.patrick.sso.ResponseWrapper.newInstance;
+
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -11,6 +14,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -52,7 +56,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 	public ResponseWrapper login(InputStream image, String lang) {
 		Response resp = getFaceId(image);
 		if (!resp.isSuccess()) {
-			return ResponseWrapper.buildFailureResponse(403, resp.getMsg());
+			return buildFailureResponse(resp.getHttpStatus(), resp.getMsg());
 		}
 
 		String faceId = resp.getMsg();
@@ -60,7 +64,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 
 		resp = identify(faceId);
 		if (!resp.isSuccess()) {
-			return ResponseWrapper.buildFailureResponse(403, resp.getMsg());
+			return buildFailureResponse(resp.getHttpStatus(), resp.getMsg());
 		}
 
 		String personId = resp.getMsg();
@@ -69,7 +73,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		String token = UUID.randomUUID().toString();
 		tokenProfileIdMap.put(token, personId);
 
-		ResponseWrapper responseWrapper = ResponseWrapper.newInstance(200);
+		ResponseWrapper responseWrapper = newInstance(HttpStatus.OK);
 		responseWrapper.addField("token", token);
 		return responseWrapper;
 	}
@@ -86,7 +90,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 			return invokeDetectAPI(image);
 		} catch (URISyntaxException | RestClientException | JSONException e) {
 			LOGGER.error("Exception occurs during invoking Microsoft Cognitive Service - Face Detect.", e);
-			return Response.buildFailureResponse(ResponseWrapper.INTERNAL_SERVER_ERROR);
+			return Response.buildFailureResponse(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -100,7 +104,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		LOGGER.debug("Response entity is {}.", responseEntity);
 
 		if (!HttpUtils.isStatusCode200(statusCode)) {
-			return Response.buildFailureResponse(ResponseWrapper.INTERNAL_SERVER_ERROR);
+			return Response.buildFailureResponse(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 		return parseDetectAPIResponse(responseEntity);
@@ -110,12 +114,12 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		JSONArray jsonArray = new JSONArray(responseEntity);
 		if (jsonArray.length() == 0) {
 			LOGGER.warn("Cannot detect any faces.");
-			return Response.buildFailureResponse("Cannot detect any faces.");
+			return Response.buildFailureResponse(HttpStatus.BAD_REQUEST, "Cannot detect any faces.");
 		}
 
 		if (jsonArray.length() > 1) {
 			LOGGER.warn("At least two faces are detected.");
-			return Response.buildFailureResponse("At least two faces are detected.");
+			return Response.buildFailureResponse(HttpStatus.BAD_REQUEST, "At least two faces are detected.");
 		}
 
 		String faceId = jsonArray.getJSONObject(0).getString("faceId");
@@ -127,7 +131,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 			return invokeIdentifyAPI(faceId);
 		} catch (URISyntaxException | RestClientException | JSONException e) {
 			LOGGER.error("Exception occurs during invoking Microsoft Cognitive Service - Face Identify.", e);
-			return Response.buildFailureResponse(ResponseWrapper.INTERNAL_SERVER_ERROR);
+			return Response.buildFailureResponse(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -142,7 +146,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		LOGGER.debug("Response entity is {}.", responseEntity);
 
 		if (!HttpUtils.isStatusCode200(statusCode)) {
-			return Response.buildFailureResponse(ResponseWrapper.INTERNAL_SERVER_ERROR);
+			return Response.buildFailureResponse(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 		return parseIdentifyAPIResponse(responseEntity);
@@ -166,7 +170,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		JSONObject jsonObject = jsonArray.getJSONObject(0);
 		JSONArray candidates = jsonObject.getJSONArray("candidates");
 		if (candidates.length() == 0) {
-			return Response.buildFailureResponse(
+			return Response.buildFailureResponse(HttpStatus.FORBIDDEN,
 					"Sorry, I don't know who you are. Please ask Patrick Pan to introduce you to me.");
 		}
 
@@ -182,6 +186,7 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 	private static class Response {
 		private String msg;
 		private boolean success;
+		private HttpStatus httpStatus;
 
 		private static Response buildResponse(String msg) {
 			Response resp = new Response();
@@ -195,9 +200,17 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 			return resp;
 		}
 
-		private static Response buildFailureResponse(String msg) {
+		private static Response buildFailureResponse(HttpStatus httpStatus, String msg) {
 			Response resp = buildResponse(msg);
 			resp.success = false;
+			resp.httpStatus = httpStatus;
+			return resp;
+		}
+
+		private static Response buildFailureResponse(HttpStatus httpStatus) {
+			Response resp = buildResponse(httpStatus.getReasonPhrase());
+			resp.success = false;
+			resp.httpStatus = httpStatus;
 			return resp;
 		}
 
@@ -207,6 +220,10 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 
 		private String getMsg() {
 			return msg;
+		}
+
+		private HttpStatus getHttpStatus() {
+			return httpStatus;
 		}
 	}
 }

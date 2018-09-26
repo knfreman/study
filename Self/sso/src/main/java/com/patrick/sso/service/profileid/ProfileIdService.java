@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -35,24 +36,24 @@ public class ProfileIdService {
 		try {
 			return getProfileId(new JSONObject(jsonString));
 		} catch (JSONException e) {
-			LOGGER.error("Exception occurs in ProfileService.getProfileId.", e);
-			return ResponseWrapper.buildFailureResponse(400, ResponseWrapper.INVALID_JSON_FORMAT);
+			LOGGER.error("Exception occurs in ProfileService.getProfileId", e);
+			return ResponseWrapper.buildFailureResponse(HttpStatus.BAD_REQUEST, ResponseWrapper.INVALID_JSON_FORMAT);
 		}
 	}
 
 	private ResponseWrapper getProfileId(JSONObject json) {
 		if (!json.has(TOKEN)) {
-			return ResponseWrapper.buildFailureResponse(400, ResponseWrapper.INVALID_JSON_FORMAT);
+			return ResponseWrapper.buildFailureResponse(HttpStatus.BAD_REQUEST, ResponseWrapper.INVALID_JSON_FORMAT);
 		}
 
 		String token = json.getString(TOKEN);
 		String profile = tokenProfileMap.get(token);
 
 		if (StringUtils.isEmpty(profile)) {
-			return ResponseWrapper.newInstance(204);
+			return ResponseWrapper.newInstance(HttpStatus.NO_CONTENT);
 		}
 
-		ResponseWrapper responseWrapper = ResponseWrapper.newInstance(200);
+		ResponseWrapper responseWrapper = ResponseWrapper.newInstance(HttpStatus.OK);
 		responseWrapper.addField("profileId", profile);
 		return responseWrapper;
 	}

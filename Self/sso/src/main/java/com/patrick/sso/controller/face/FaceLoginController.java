@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,7 +43,7 @@ public class FaceLoginController {
 			responseWrapper = loginByFace(req);
 		} catch (IOException e) {
 			LOGGER.error("Exception occurs in FaceLoginController.loginByFace", e);
-			responseWrapper = ResponseWrapper.buildFailureResponse(500, ResponseWrapper.INTERNAL_SERVER_ERROR);
+			responseWrapper = ResponseWrapper.buildFailureResponse(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 		resp.setStatus(responseWrapper.getStatusCode());
@@ -55,7 +56,7 @@ public class FaceLoginController {
 		LOGGER.debug("Receive parameter: lang = [{}]", lang);
 		try (ServletInputStream inputStream = req.getInputStream()) {
 			if (inputStream.isFinished()) {
-				return ResponseWrapper.buildFailureResponse(400, "Binary data of image is missing");
+				return ResponseWrapper.buildFailureResponse(HttpStatus.BAD_REQUEST, "Binary data of image is missing");
 			}
 
 			return faceLoginService.login(inputStream, lang);

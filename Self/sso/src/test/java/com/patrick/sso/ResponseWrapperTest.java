@@ -1,12 +1,12 @@
 package com.patrick.sso;
 
+import static com.patrick.sso.ResponseWrapper.INVALID_JSON_FORMAT;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Map;
 
 import org.junit.Test;
-
-import com.patrick.sso.ResponseWrapper;
+import org.springframework.http.HttpStatus;
 
 /**
  * 
@@ -16,10 +16,24 @@ import com.patrick.sso.ResponseWrapper;
 public class ResponseWrapperTest {
 
 	@Test
-	public void testBuildFailureResponse() {
-		final int statusCode = 400;
-		final String msg = "Bad Request";
-		ResponseWrapper responseWrapper = ResponseWrapper.buildFailureResponse(statusCode, msg);
+	public void testBuildFailureResponse0() {
+		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+		final int statusCode = httpStatus.value();
+		final String msg = httpStatus.getReasonPhrase();
+		ResponseWrapper responseWrapper = ResponseWrapper.buildFailureResponse(httpStatus);
+		assertEquals(statusCode, responseWrapper.getStatusCode());
+
+		Map<String, Object> content = responseWrapper.getContent();
+		assertEquals(1, content.size());
+		assertEquals(msg, content.get("msg"));
+	}
+
+	@Test
+	public void testBuildFailureResponse1() {
+		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+		final int statusCode = httpStatus.value();
+		final String msg = INVALID_JSON_FORMAT;
+		ResponseWrapper responseWrapper = ResponseWrapper.buildFailureResponse(httpStatus, INVALID_JSON_FORMAT);
 		assertEquals(statusCode, responseWrapper.getStatusCode());
 
 		Map<String, Object> content = responseWrapper.getContent();
@@ -29,11 +43,11 @@ public class ResponseWrapperTest {
 
 	@Test
 	public void testAddField() {
-		final int statusCode = 200;
+		HttpStatus httpStatus = HttpStatus.OK;
 		final String key = "token";
 		final String value = "abc-def-ghi";
-		ResponseWrapper responseWrapper = ResponseWrapper.newInstance(statusCode);
-		assertEquals(statusCode, responseWrapper.getStatusCode());
+		ResponseWrapper responseWrapper = ResponseWrapper.newInstance(httpStatus);
+		assertEquals(httpStatus.value(), responseWrapper.getStatusCode());
 
 		responseWrapper.addField(key, value);
 
