@@ -13,6 +13,7 @@ plugins {
 }
 
 project.ext.resourceFolder = 'src/main/resources'
+project.ext.classFileName = 'MyObject'
 
 dependencies {
 }
@@ -25,12 +26,12 @@ repositories {
 }
 
 task deleteClass(type:Delete) {
-	delete "${resourceFolder}/MyObject"
+	delete "${resourceFolder}/${classFileName}"
 }
 
 task copyClass(type:Copy,dependsOn:[clean,deleteClass,compileJava]) {
 	from(sourceSets.main.java.outputDir.absolutePath+"/com/patrick"){
-		rename 'MyObject.class','MyObject'
+		rename "${classFileName}.class","${classFileName}"
 	}
 	include 'MyObject.class'
 	into "${resourceFolder}/"
