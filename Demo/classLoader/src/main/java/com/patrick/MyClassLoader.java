@@ -1,5 +1,6 @@
 package com.patrick;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -27,11 +28,15 @@ public class MyClassLoader extends ClassLoader {
 	}
 
 	private byte[] getBytes(String classFileName) throws IOException {
-		try (InputStream inputStream = MyClassLoader.class.getClassLoader().getResourceAsStream(classFileName)) {
-			int len = inputStream.available();
-			byte[] bytes = new byte[len];
-			inputStream.read(bytes, 0, len);
-			return bytes;
+		int hasRead = 0;
+		byte[] buffer = new byte[1024];
+		
+		try (InputStream inputStream = MyClassLoader.class.getClassLoader().getResourceAsStream(classFileName);
+				ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+			while ((hasRead = inputStream.read(buffer)) > 0) {
+				outputStream.write(buffer, 0, hasRead);
+			}
+			return outputStream.toByteArray();
 		}
 	}
 }
