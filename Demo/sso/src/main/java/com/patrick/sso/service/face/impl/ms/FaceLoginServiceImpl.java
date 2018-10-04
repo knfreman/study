@@ -3,6 +3,8 @@ package com.patrick.sso.service.face.impl.ms;
 import static com.patrick.sso.ResponseWrapper.buildFailureResponse;
 import static com.patrick.sso.ResponseWrapper.newInstance;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -88,15 +90,15 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 	private Response getFaceId(InputStream image) {
 		try {
 			return invokeDetectAPI(image);
-		} catch (URISyntaxException | RestClientException | JSONException e) {
+		} catch (URISyntaxException | RestClientException | JSONException | IOException e) {
 			LOGGER.error("Exception occurs during invoking Microsoft Cognitive Service - Face Detect.", e);
 			return Response.buildFailureResponse(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	private Response invokeDetectAPI(InputStream image) throws URISyntaxException {
+	private Response invokeDetectAPI(InputStream image) throws URISyntaxException, IOException {
 		URI uri = new URI(DETECT_URL);
-		HttpEntity<InputStream> entity = new HttpEntity<>(image, invokeDetectAPIHeaders);
+		HttpEntity<byte[]> entity = new HttpEntity<>(inputStreamToByteArray(image), invokeDetectAPIHeaders);
 		ResponseEntity<String> resp = restTemplate.postForEntity(uri, entity, String.class);
 
 		int statusCode = resp.getStatusCodeValue();
@@ -108,6 +110,19 @@ public class FaceLoginServiceImpl extends AbstractFaceLoginService {
 		}
 
 		return parseDetectAPIResponse(responseEntity);
+	}
+
+	private byte[] inputStreamToByteArray(InputStream image) throws IOException {
+		int hasRead = 0;
+		byte[] buffer = new byte[1024];
+
+		try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+			while ((hasRead = image.read(buffer)) > 0) {
+				outputStream.write(buffer, 0, hasRead);
+			}
+
+			return outputStream.toByteArray();
+		}
 	}
 
 	private Response parseDetectAPIResponse(String responseEntity) {

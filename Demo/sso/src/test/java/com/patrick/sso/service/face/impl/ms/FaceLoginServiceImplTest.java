@@ -23,7 +23,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.patrick.sso.ResponseWrapper;
-import com.patrick.sso.common.InputStreamHttpMessageConverter;
 import com.patrick.sso.profileid.ITokenProfileIdMap;
 import com.patrick.sso.profileid.impl.SimpleTokenProfileIdMap;
 import com.patrick.sso.service.face.impl.ms.Authentication.PersonGroup;
@@ -84,6 +83,7 @@ public class FaceLoginServiceImplTest {
 			// Known Identity
 			buildStubServiceBuilderForIdentifyAPI(OK, KNOWN_FACE_ID, PERSON_ID)));
 
+	private RestTemplate restTemplate;
 	private ITokenProfileIdMap tokenProfileIdMap;
 	private FaceLoginServiceImpl faceLoginService;
 
@@ -91,9 +91,10 @@ public class FaceLoginServiceImplTest {
 	public void beforeTest() throws Exception {
 		faceLoginService = new FaceLoginServiceImpl();
 		tokenProfileIdMap = new SimpleTokenProfileIdMap();
+		restTemplate = new RestTemplate();
 
 		injectField("tokenProfileIdMap", tokenProfileIdMap);
-		injectField("restTemplate", buildRestTemplate());
+		injectField("restTemplate", restTemplate);
 	}
 
 	@Test
@@ -220,11 +221,5 @@ public class FaceLoginServiceImplTest {
 		Field field = clazz.getDeclaredField(name);
 		field.setAccessible(true);
 		field.set(faceLoginService, val);
-	}
-
-	private RestTemplate buildRestTemplate() {
-		RestTemplate restTemplate = new RestTemplate();
-		restTemplate.getMessageConverters().add(new InputStreamHttpMessageConverter());
-		return restTemplate;
 	}
 }
